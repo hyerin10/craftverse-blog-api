@@ -1,6 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.model.dto;
 
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,9 @@ public class ArticleDTO {
   private String title;
   @NotNull
   private String content;
+  @Pattern(regexp = "overoll|tech|series")
   private String category;
+  @Pattern(regexp = "ko|en|es")
   private String language;
   private Boolean isPremium;
   private Long createdAt;
