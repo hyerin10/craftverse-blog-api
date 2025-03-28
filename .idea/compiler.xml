@@ -10,5 +10,9 @@
         <module name="craftverse-blog-api.craftverse-blog-api.main" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="craftverse-blog-api.craftverse-blog-api.main~1" target="17" />
+      <module name="craftverse-blog-api.craftverse-blog-api.test~1" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>
