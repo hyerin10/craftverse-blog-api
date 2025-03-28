@@ -6,11 +6,16 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Getter
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor
 @Table(name="article")
 public class Article {
@@ -37,4 +42,18 @@ public class Article {
   private String slug;
   @Column(name="meta_description")
   private String metaDescription;
+
+  public void saveArticle(long id, ArticleDTO articleDTO) {
+    this.id = id;
+    this.title = articleDTO.getTitle();
+    this.content = articleDTO.getContent();
+    this.category = articleDTO.getCategory();
+    this.isPremium = articleDTO.getIsPremium();
+    this.language = articleDTO.getLanguage();
+    this.viewsCount = articleDTO.getViewsCount();
+    this.createdAt = articleDTO.getCreatedAt();
+    this.updatedAt = articleDTO.getUpdatedAt();
+    this.slug = articleDTO.getSlug();
+    this.metaDescription = articleDTO.getMetaDescription();
+  }
 }
