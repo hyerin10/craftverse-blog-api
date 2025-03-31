@@ -1,11 +1,10 @@
 package kr.co.craftverse.craftverse_blog_api.common;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@Data
-public class RestResult {
-  private Object data;
-  public RestResult(Object data) {
-    this.data = data;
-  }
+@Getter
+@AllArgsConstructor
+public class RestResult<T> {
+  private T result;
 }
