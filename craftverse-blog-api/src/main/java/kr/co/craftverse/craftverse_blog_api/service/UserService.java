@@ -29,7 +29,7 @@ public class UserService {
         .firstName(userRegistrationRequestDTO.getFirstName())
         .lastName(userRegistrationRequestDTO.getLastName())
         .email(userRegistrationRequestDTO.getEmail())
-        .passwordHash(passwordEncoder.encode(userRegistrationRequestDTO.getPassword()))
+        .password(passwordEncoder.encode(userRegistrationRequestDTO.getPassword()))
         .birthDate(userRegistrationRequestDTO.getBirthDate()) // Assuming birthDate is already in UTC timestamp
         .country(userRegistrationRequestDTO.getCountry())
         .postalCode(userRegistrationRequestDTO.getPostalCode())
