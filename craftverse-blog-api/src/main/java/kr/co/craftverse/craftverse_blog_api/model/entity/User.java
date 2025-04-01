@@ -30,7 +30,7 @@ public class User {
   @Column(name="email")
   private String email;
   @Column(name="password_hash")
-  private String passwordHash;
+  private String password;
   @Column(name="birth_date")
   private Long birthDate;
   @Column(name="country")
