@@ -39,7 +39,7 @@ public class SecurityConfig {
             .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
 
         .authorizeHttpRequests(authorizeRequest -> authorizeRequest
-            .requestMatchers("/users/**", "/error").permitAll()
+            .requestMatchers("/users/**", "/articles", "/error").permitAll()
             .anyRequest().authenticated()
         )
 
