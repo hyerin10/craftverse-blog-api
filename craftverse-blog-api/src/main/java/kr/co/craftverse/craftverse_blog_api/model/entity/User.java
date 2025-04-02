@@ -49,4 +49,9 @@ public class User {
   private Integer loginAttempts;
   @Column(name="account_locked")
   private boolean accountLocked;
+
+  public void verifyEmail() {
+    this.emailVerified = true;
+    this.updatedAt = java.time.Instant.now().getEpochSecond();
+  }
 }

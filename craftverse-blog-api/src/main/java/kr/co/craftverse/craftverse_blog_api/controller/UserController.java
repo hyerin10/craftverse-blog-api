@@ -8,13 +8,17 @@ import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyEmailDTO;
 import kr.co.craftverse.craftverse_blog_api.service.AuthService;
 import kr.co.craftverse.craftverse_blog_api.service.UserService;
+import kr.co.craftverse.craftverse_blog_api.service.VerificationService;
 import lombok.RequiredArgsConstructor;
+import org.apache.coyote.BadRequestException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,12 +28,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
   private final UserService userService;
   private final AuthService authService;
+  private final VerificationService verificationService;
 
   @PostMapping("/register")
   public RestResult<Map<String, Object>> registerUser(@Valid @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
     Map<String, Object> data = new LinkedHashMap<>();
     UserResponseDTO userResponseDTO = userService.registerUser(userRegistrationRequestDTO);
     data.put("user", userResponseDTO);
+    data.put("message", "회원가입이 진행되었습니다. 이메일을 확인하여 인증을 완료해주세요.");
     return new RestResult<>(data);
   }
 
@@ -38,6 +44,24 @@ public class UserController {
     Map<String, Object> data = new LinkedHashMap<>();
     String accessToken = authService.login(loginRequestDTO);
     data.put("accessToken", accessToken);
+    return new RestResult<>(data);
+  }
+
+  @PostMapping("/verify-email")
+  public RestResult<Map<String, Object>> verifyEmail(@Valid @RequestBody VerifyEmailDTO verifyEmailDTO)
+      throws BadRequestException {
+    Map<String, Object> data = new LinkedHashMap<>();
+    boolean verified = verificationService.verifyEmail(verifyEmailDTO);
+    data.put("verified", verified);
+    data.put("message", "이메일 인증이 완료되었습니다.");
+    return new RestResult<>(data);
+  }
+
+  @PostMapping("/resend-verification")
+  public RestResult<Map<String, Object>> resendVerification(@RequestParam String email) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    userService.resendVerificationEmail(email);
+    data.put("message", "인증 이메일이 재발송되었습니다.");
     return new RestResult<>(data);
   }
 }
