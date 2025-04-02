@@ -4,6 +4,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import kr.co.craftverse.craftverse_blog_api.common.RestError;
 import kr.co.craftverse.craftverse_blog_api.exception.AuthenticationFailureException;
 import kr.co.craftverse.craftverse_blog_api.exception.DuplicateResourceException;
+import kr.co.craftverse.craftverse_blog_api.exception.ResourceNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,7 +18,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
   @ExceptionHandler({
       EmptyDataException.class,
-      DuplicateResourceException.class
+      DuplicateResourceException.class,
+      ResourceNotFoundException.class
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public RestError handleBadRequest(Exception  e) {
