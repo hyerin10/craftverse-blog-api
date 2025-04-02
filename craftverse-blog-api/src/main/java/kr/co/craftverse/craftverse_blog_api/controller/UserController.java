@@ -5,16 +5,19 @@ import jakarta.validation.Valid;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
+import kr.co.craftverse.craftverse_blog_api.model.dto.GoogleLoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyEmailDTO;
 import kr.co.craftverse.craftverse_blog_api.service.AuthService;
+import kr.co.craftverse.craftverse_blog_api.service.OAuth2Service;
 import kr.co.craftverse.craftverse_blog_api.service.UserService;
 import kr.co.craftverse.craftverse_blog_api.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.apache.coyote.BadRequestException;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,6 +32,7 @@ public class UserController {
   private final UserService userService;
   private final AuthService authService;
   private final VerificationService verificationService;
+  private final OAuth2Service oAuth2Service;
 
   @PostMapping("/register")
   public RestResult<Map<String, Object>> registerUser(@Valid @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
@@ -62,6 +66,26 @@ public class UserController {
     Map<String, Object> data = new LinkedHashMap<>();
     userService.resendVerificationEmail(email);
     data.put("message", "인증 이메일이 재발송되었습니다.");
+    return new RestResult<>(data);
+  }
+
+  // Google OAuth 로그인 URL을 가져오는 API
+  @GetMapping("/auth/google")
+  public RestResult<Map<String, Object>> getGoogleAuthUrl(HttpServletRequest request) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    String authUrl = oAuth2Service.getGoogleAuthUrl(request);
+    data.put("authUrl", authUrl);
+    return new RestResult<>(data);
+  }
+
+  // Google OAuth 로그인 API (프론트엔드에서 받은 코드로 로그인)
+  @PostMapping("/auth/google")
+  public RestResult<Map<String, Object>> googleLogin(@Valid @RequestBody GoogleLoginRequestDTO requestDTO) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    Map<String, String> tokenInfo = oAuth2Service.loginWithGoogle(requestDTO.getCode());
+
+    data.put("accessToken", tokenInfo.get("accessToken"));
+    data.put("user", tokenInfo.get("user"));
     return new RestResult<>(data);
   }
 }
