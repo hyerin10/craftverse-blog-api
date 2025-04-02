@@ -49,9 +49,26 @@ public class User {
   private Integer loginAttempts;
   @Column(name="account_locked")
   private boolean accountLocked;
+  // Google OAuth 관련 필드 추가
+  @Column(name="oauth_provider")
+  private String oauthProvider;
+  @Column(name="oauth_id")
+  private String oauthId;
+  @Column(name="profile_picture_url")
+  private String profilePictureUrl;
 
   public void verifyEmail() {
     this.emailVerified = true;
     this.updatedAt = java.time.Instant.now().getEpochSecond();
+  }
+
+  // Google OAuth 로그인 정보 업데이트 메서드
+  public void updateOAuthInfo(String provider, String oauthId, String profilePictureUrl) {
+    this.oauthProvider = provider;
+    this.oauthId = oauthId;
+    this.profilePictureUrl = profilePictureUrl;
+    this.emailVerified = true; // OAuth 로그인은 이메일이 이미 검증됨
+    this.updatedAt = java.time.Instant.now().getEpochSecond();
+    this.lastLogin = new Date();
   }
 }
