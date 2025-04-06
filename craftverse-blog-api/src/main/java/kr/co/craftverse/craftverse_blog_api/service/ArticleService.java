@@ -1,11 +1,16 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import kr.co.craftverse.craftverse_blog_api.common.exception.EmptyDataException;
+import kr.co.craftverse.craftverse_blog_api.exception.ResourceNotFoundException;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchasesDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
+import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchases;
+import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchaseRepository;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ArticleService {
   private final ArticleRepository articleRepository;
+  private final ArticlePurchaseRepository articlePurchaseRepository;
 
   public List<ArticleDTO> getAll() {
     List<Article> articles = articleRepository.findAll();
@@ -58,6 +64,36 @@ public class ArticleService {
         .metaDescription(article.getMetaDescription())
         .build();
     return articleDTO;
+  }
+
+  public List<ArticlePurchasesDTO> getPurchases(Long userId) {
+    List<ArticlePurchases> articlePurchases = articlePurchaseRepository.findByUserId(userId);
+    List<ArticlePurchasesDTO> articlePurchasesDTO = new ArrayList<>();
+
+    for(ArticlePurchases articlePurchase: articlePurchases) {
+      Article article = articleRepository.findById(articlePurchase.getArticleId())
+          .orElseThrow(() -> new ResourceNotFoundException("not found."));
+
+      ArticlePurchasesDTO articlePurchaseDTO = ArticlePurchasesDTO.builder()
+          .id(articlePurchase.getId())
+          .purchaseDate(articlePurchase.getPurchaseDate())
+          .purchasePrice(articlePurchase.getPurchasePrice())
+          .paymentStatus(articlePurchase.getPaymentStatus())
+          .title(article.getTitle())
+          .content(article.getContent())
+          .category(article.getCategory())
+          .language(article.getLanguage())
+          .createdAt(article.getCreatedAt())
+          .updatedAt(article.getUpdatedAt())
+          .viewsCount(article.getViewsCount())
+          .slug(article.getSlug())
+          .metaDescription(article.getMetaDescription())
+          .build();
+
+      articlePurchasesDTO.add(articlePurchaseDTO);
+    }
+
+    return articlePurchasesDTO;
   }
 
   public Article create(ArticleDTO articleDTO) {

@@ -3,9 +3,14 @@ package kr.co.craftverse.craftverse_blog_api.controller;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
+import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
+import kr.co.craftverse.craftverse_blog_api.security.CustomUserDetails;
 import kr.co.craftverse.craftverse_blog_api.service.ArticleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +36,18 @@ public class ArticleController {
   public RestResult<Map<String, Object>> getById(@PathVariable long id) {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("article", articleService.getById(id));
+    return new RestResult<>(data);
+  }
+
+  @GetMapping("/article-purchases")
+  public RestResult<Map<String, Object>> getPurchases() {
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    Long userId = null;
+    if (authentication != null && authentication.getPrincipal() instanceof UserDetails)
+      userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+
+    Map<String, Object> data = new LinkedHashMap<>();
+    data.put("article-purchases", articleService.getPurchases(userId));
     return new RestResult<>(data);
   }
 
