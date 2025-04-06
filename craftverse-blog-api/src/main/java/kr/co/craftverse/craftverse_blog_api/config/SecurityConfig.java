@@ -40,6 +40,7 @@ public class SecurityConfig {
 
         .authorizeHttpRequests(authorizeRequest -> authorizeRequest
             .requestMatchers("/users/**", "/articles", "/auth/**", "/error").permitAll()
+            .requestMatchers("/article-purchases/**").authenticated()
             .anyRequest().authenticated()
         )
 

@@ -21,7 +21,7 @@ public class ArticleDTO {
   private String content;
   @Pattern(regexp = "overoll|tech|series")
   private String category;
-  @Pattern(regexp = "ko|en|es")
+  @Pattern(regexp = "ko|en")
   private String language;
   private Boolean isPremium;
   private Long createdAt;
