@@ -24,8 +24,10 @@ public class ArticlePurchases {
   private Long id;
   @Column(name="user_id")
   private Long userId;
-  @Column(name="article_id")
-  private Long articleId;
+  @Column(name="article_id_ko")
+  private Long articleIdKo;
+  @Column(name="article_id_en")
+  private Long articleIdEn;
   @Column(name="purchase_date")
   private Long purchaseDate;
   @Column(name="purchase_price")

@@ -23,8 +23,8 @@ public class ArticleService {
   private final ArticleRepository articleRepository;
   private final ArticlePurchaseRepository articlePurchaseRepository;
 
-  public List<ArticleDTO> getAll() {
-    List<Article> articles = articleRepository.findAll();
+  public List<ArticleDTO> getByLanguage(String language) {
+    List<Article> articles = articleRepository.findByLanguage(language);
 
     if (articles.isEmpty())
       throw new EmptyDataException("articles array is null.");
@@ -66,13 +66,18 @@ public class ArticleService {
     return articleDTO;
   }
 
-  public List<ArticlePurchasesDTO> getPurchases(Long userId) {
+  public List<ArticlePurchasesDTO> getPurchasesBylanguage(Long userId, String language) {
     List<ArticlePurchases> articlePurchases = articlePurchaseRepository.findByUserId(userId);
     List<ArticlePurchasesDTO> articlePurchasesDTO = new ArrayList<>();
 
     for(ArticlePurchases articlePurchase: articlePurchases) {
-      Article article = articleRepository.findById(articlePurchase.getArticleId())
-          .orElseThrow(() -> new ResourceNotFoundException("not found."));
+      Article article;
+      if(language.equals("ko"))
+        article = articleRepository.findById(articlePurchase.getArticleIdKo())
+            .orElseThrow(() -> new ResourceNotFoundException("not found."));
+      else
+        article = articleRepository.findById(articlePurchase.getArticleIdEn())
+            .orElseThrow(() -> new ResourceNotFoundException("not found."));
 
       ArticlePurchasesDTO articlePurchaseDTO = ArticlePurchasesDTO.builder()
           .id(articlePurchase.getId())

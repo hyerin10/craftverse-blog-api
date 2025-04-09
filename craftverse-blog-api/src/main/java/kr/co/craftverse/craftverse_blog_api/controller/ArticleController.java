@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -26,9 +27,10 @@ public class ArticleController {
   private final ArticleService articleService;
 
   @GetMapping("/articles")
-  public RestResult<Map<String, Object>> getAll() {
+  public RestResult<Map<String, Object>> getByLanguage(
+      @RequestParam(name = "language", defaultValue = "en") String language) {
     Map<String, Object> data = new LinkedHashMap<>();
-    data.put("articles", articleService.getAll());
+    data.put("articles", articleService.getByLanguage(language));
     return new RestResult<>(data);
   }
 
@@ -40,14 +42,14 @@ public class ArticleController {
   }
 
   @GetMapping("/article-purchases")
-  public RestResult<Map<String, Object>> getPurchases() {
+  public RestResult<Map<String, Object>> getPurchases(@RequestParam(name = "language", defaultValue = "en") String language) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Long userId = null;
     if (authentication != null && authentication.getPrincipal() instanceof UserDetails)
       userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
     Map<String, Object> data = new LinkedHashMap<>();
-    data.put("article-purchases", articleService.getPurchases(userId));
+    data.put("article-purchases", articleService.getPurchasesBylanguage(userId, language));
     return new RestResult<>(data);
   }
 
