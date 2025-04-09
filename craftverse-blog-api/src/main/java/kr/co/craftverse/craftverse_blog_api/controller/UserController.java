@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
+import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.GoogleLoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
@@ -33,6 +34,7 @@ public class UserController {
   private final AuthService authService;
   private final VerificationService verificationService;
   private final OAuth2Service oAuth2Service;
+  private final JwtTokenProvider jwtTokenProvider;
 
   @PostMapping("/register")
   public RestResult<Map<String, Object>> registerUser(@Valid @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
@@ -86,6 +88,20 @@ public class UserController {
 
     data.put("accessToken", tokenInfo.get("accessToken"));
     data.put("user", tokenInfo.get("user"));
+    return new RestResult<>(data);
+  }
+
+  @PostMapping("/logout")
+  public RestResult<Map<String, Object>> logout(HttpServletRequest request) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    String token = jwtTokenProvider.resolveToken(request);
+
+    if (token != null) {
+      jwtTokenProvider.blacklistToken(token);
+      data.put("message", "로그아웃 되었습니다.");
+    } else
+      data.put("message", "인증 토큰이 없습니다.");
+
     return new RestResult<>(data);
   }
 }
