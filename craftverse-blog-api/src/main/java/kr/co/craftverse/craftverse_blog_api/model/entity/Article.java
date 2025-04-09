@@ -56,4 +56,16 @@ public class Article {
     this.slug = articleDTO.getSlug();
     this.metaDescription = articleDTO.getMetaDescription();
   }
+
+  public void updateModifiedTime(Long currentTimeMillis) {
+    this.updatedAt = currentTimeMillis;
+  }
+
+  public Integer incrementViewsCount() {
+    if (this.viewsCount == null)
+      this.viewsCount = 1;
+    else
+      this.viewsCount = this.viewsCount + 1;
+    return this.viewsCount;
+  }
 }

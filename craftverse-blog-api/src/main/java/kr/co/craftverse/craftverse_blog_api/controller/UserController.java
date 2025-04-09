@@ -71,26 +71,6 @@ public class UserController {
     return new RestResult<>(data);
   }
 
-  // Google OAuth 로그인 URL을 가져오는 API
-  @GetMapping("/auth/google")
-  public RestResult<Map<String, Object>> getGoogleAuthUrl(HttpServletRequest request) {
-    Map<String, Object> data = new LinkedHashMap<>();
-    String authUrl = oAuth2Service.getGoogleAuthUrl(request);
-    data.put("authUrl", authUrl);
-    return new RestResult<>(data);
-  }
-
-  // Google OAuth 로그인 API (프론트엔드에서 받은 코드로 로그인)
-  @PostMapping("/auth/google")
-  public RestResult<Map<String, Object>> googleLogin(@Valid @RequestBody GoogleLoginRequestDTO requestDTO) {
-    Map<String, Object> data = new LinkedHashMap<>();
-    Map<String, String> tokenInfo = oAuth2Service.loginWithGoogle(requestDTO.getCode());
-
-    data.put("accessToken", tokenInfo.get("accessToken"));
-    data.put("user", tokenInfo.get("user"));
-    return new RestResult<>(data);
-  }
-
   @PostMapping("/logout")
   public RestResult<Map<String, Object>> logout(HttpServletRequest request) {
     Map<String, Object> data = new LinkedHashMap<>();

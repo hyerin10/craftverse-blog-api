@@ -1,5 +1,6 @@
 package kr.co.craftverse.craftverse_blog_api.controller;
 
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
@@ -73,6 +74,18 @@ public class ArticleController {
     Map<String, Object> data = new LinkedHashMap<>();
     articleService.delete(id);
     data.put("success", "true");
+    return new RestResult<>(data);
+  }
+
+  @PostMapping("/article/{id}/views")
+  public RestResult<Map<String, Object>> incrementViews(@PathVariable Long id, HttpServletRequest request) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    // 방문자 식별자 생성 (세션 ID)
+    String visitorIdentifier = request.getSession().getId();
+    System.out.println("Session ID: " + visitorIdentifier);
+    // 24시간 내 중복 방지(기본값)
+    Integer newViewCount = articleService.incrementViewCountWithDuplicatePrevention(id, visitorIdentifier, 24);
+    data.put("views", newViewCount);
     return new RestResult<>(data);
   }
 }
