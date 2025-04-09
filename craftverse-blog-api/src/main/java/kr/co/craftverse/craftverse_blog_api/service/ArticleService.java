@@ -1,6 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class ArticleService {
   private final ArticleRepository articleRepository;
   private final ArticlePurchaseRepository articlePurchaseRepository;
+  private final ViewCountService viewCountService;
 
   public List<ArticleDTO> getByLanguage(String language) {
     List<Article> articles = articleRepository.findByLanguage(language);
@@ -133,5 +135,39 @@ public class ArticleService {
     Article article = articleRepository.findById(id)
         .orElseThrow(() -> new EntityNotFoundException("Article not found"));
     articleRepository.delete(article);
+  }
+
+  @Transactional
+  public Integer incrementViewCount(Long id) {
+    Article article = articleRepository.findById(id)
+        .orElseThrow(() -> new EntityNotFoundException("Article not found"));
+
+    Integer newViewCount = article.incrementViewsCount();
+    article.updateModifiedTime(System.currentTimeMillis());
+
+    articleRepository.save(article);
+    return newViewCount;
+  }
+
+  /**
+   * 중복 조회 방지를 위한 조회수 증가 (세션 ID를 통한 방문자 구분)
+   * @param articleId 게시글 ID
+   * @param visitorIdentifier 방문자 식별자 (세션 ID 또는 IP)
+   * @param expirationTimeHours 중복 조회 방지 시간(시간 단위)
+   * @return 증가된 후의 조회수 또는 중복 방문이면 현재 조회수
+   */
+  @Transactional
+  public Integer incrementViewCountWithDuplicatePrevention(Long articleId, String visitorIdentifier, int expirationTimeHours) {
+    // Redis를 사용하여 최근 방문 기록 확인
+    boolean recentlyVisited = viewCountService.hasRecentlyVisited(articleId, visitorIdentifier);
+    if (!recentlyVisited){
+      viewCountService.recordVisit(articleId, visitorIdentifier, expirationTimeHours);
+      return incrementViewCount(articleId);
+    } else {
+      // 최근 방문 기록이 있으면 현재 조회수 반환
+      Article article = articleRepository.findById(articleId)
+          .orElseThrow(() -> new EntityNotFoundException("Article not found with id: " + articleId));
+      return article.getViewsCount();
+    }
   }
 }

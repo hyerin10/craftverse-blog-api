@@ -1,5 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.config;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.BLACKLIST_PREFIX;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -34,9 +36,6 @@ public class JwtTokenProvider {
   private RedisTemplate<String, String> redisTemplate;
 
   private Key key;
-
-  // Redis에 저장할 토큰 블랙리스트의 키 접두사
-  private static final String BLACKLIST_PREFIX = "blacklist:";
 
   @PostConstruct
   protected void init() {
