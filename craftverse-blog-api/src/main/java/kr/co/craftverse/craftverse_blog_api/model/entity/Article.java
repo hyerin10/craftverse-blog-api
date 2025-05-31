@@ -32,8 +32,8 @@ public class Article {
   private Boolean isPremium;
   @Column(name="language")
   private String language;
-  @Column(name="views_count")
-  private Integer viewsCount;
+  @Column(name="view_count")
+  private Integer viewCount;
   @Column(name="created_at")
   private Long createdAt;
   @Column(name="updated_at")
@@ -50,7 +50,7 @@ public class Article {
     this.category = articleDTO.getCategory();
     this.isPremium = articleDTO.getIsPremium();
     this.language = articleDTO.getLanguage();
-    this.viewsCount = articleDTO.getViewsCount();
+    this.viewCount = articleDTO.getViewCount();
     this.createdAt = articleDTO.getCreatedAt();
     this.updatedAt = articleDTO.getUpdatedAt();
     this.slug = articleDTO.getSlug();
@@ -61,11 +61,11 @@ public class Article {
     this.updatedAt = currentTimeMillis;
   }
 
-  public Integer incrementViewsCount() {
-    if (this.viewsCount == null)
-      this.viewsCount = 1;
+  public Integer incrementViewCount() {
+    if (this.viewCount == null)
+      this.viewCount = 1;
     else
-      this.viewsCount = this.viewsCount + 1;
-    return this.viewsCount;
+      this.viewCount = this.viewCount + 1;
+    return this.viewCount;
   }
 }
