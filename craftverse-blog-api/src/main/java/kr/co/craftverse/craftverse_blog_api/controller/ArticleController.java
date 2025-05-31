@@ -82,19 +82,21 @@ public class ArticleController {
   public RestResult<Map<String, Object>> incrementViews(@PathVariable Long id,
       HttpServletRequest request,
       HttpServletResponse response) {
+
     Map<String, Object> data = new LinkedHashMap<>();
 
-    // 기존 쿠키 확인
-    boolean isNewVisitor = !hasVisitorCookie(request);
+    // 해당 아티클에 대한 조회 쿠키 확인
+    String articleCookieName = "article_viewed_" + id;
+    boolean hasViewedThisArticle = hasArticleViewCookie(request, articleCookieName);
 
-    if (isNewVisitor) {
-      // 새 방문자 - 쿠키 생성 + 조회수 증가
-      createVisitorCookie(response);
+    if (!hasViewedThisArticle) {
+      // 이 아티클을 처음 조회 - 쿠키 생성 + 조회수 증가
+      createArticleViewCookie(response, articleCookieName);
       Integer viewCount = articleService.incrementViewCount(id);
       data.put("viewCount", viewCount);
       data.put("isNewView", true);
     } else {
-      // 기존 방문자 - 현재 조회수만 반환
+      // 이미 조회한 아티클 - 현재 조회수만 반환
       Integer currentViewCount = articleService.getCurrentViewCount(id);
       data.put("viewCount", currentViewCount);
       data.put("isNewView", false);
@@ -103,24 +105,23 @@ public class ArticleController {
     return new RestResult<>(data);
   }
 
-  private boolean hasVisitorCookie(HttpServletRequest request) {
+  private boolean hasArticleViewCookie(HttpServletRequest request, String cookieName) {
     Cookie[] cookies = request.getCookies();
     if (cookies != null) {
       for (Cookie cookie : cookies) {
-        if ("blog_visitor_id".equals(cookie.getName())) {
-          return true; // 쿠키 존재
+        if (cookieName.equals(cookie.getName())) {
+          return true;
         }
       }
     }
-    return false; // 쿠키 없음
+    return false;
   }
 
-  private void createVisitorCookie(HttpServletResponse response) {
-    String visitorId = UUID.randomUUID().toString();
-    Cookie visitorCookie = new Cookie("blog_visitor_id", visitorId);
-    visitorCookie.setMaxAge(365 * 24 * 60 * 60); // 1년
-    visitorCookie.setHttpOnly(true);
-    visitorCookie.setPath("/");
-    response.addCookie(visitorCookie);
+  private void createArticleViewCookie(HttpServletResponse response, String cookieName) {
+    Cookie viewCookie = new Cookie(cookieName, "viewed");
+    viewCookie.setMaxAge(365 * 24 * 60 * 60); // 1 year
+    viewCookie.setHttpOnly(true);
+    viewCookie.setPath("/");
+    response.addCookie(viewCookie);
   }
 }
