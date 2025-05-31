@@ -4,12 +4,11 @@ import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.EMAIL_V
 
 import jakarta.transaction.Transactional;
 import java.time.Duration;
-import kr.co.craftverse.craftverse_blog_api.exception.ResourceNotFoundException;
+import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyEmailDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.User;
 import kr.co.craftverse.craftverse_blog_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,7 +16,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class VerificationService {
+public class EmailVerificationService {
 
   private final RedisTemplate<String, String> redisTemplate;
   private final UserRepository userRepository;
@@ -40,25 +39,23 @@ public class VerificationService {
    * 이메일 인증 코드 검증
    */
   @Transactional
-  public boolean verifyEmail(VerifyEmailDTO verifyEmailDTO) throws BadRequestException {
+  public boolean verifyEmail(VerifyEmailDTO verifyEmailDTO) {
     String key = EMAIL_VERIFICATION_PREFIX + verifyEmailDTO.getEmail();
     String storedCode = redisTemplate.opsForValue().get(key);
 
-    if (storedCode == null)
-      throw new BadRequestException("인증 코드가 만료되었거나 존재하지 않습니다.");
-
-    if (!storedCode.equals(verifyEmailDTO.getCode()))
-      throw new BadRequestException("인증 코드가 일치하지 않습니다.");
+    if (storedCode.isEmpty() || !storedCode.equals(verifyEmailDTO.getCode()))
+      throw new UnauthorizedException();
 
     User user = userRepository.findByEmail(verifyEmailDTO.getEmail())
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + verifyEmailDTO.getEmail()));
+        .orElseThrow(UnauthorizedException::new);
 
     // 사용자가 이미 인증되었는지 확인
     if (user.isEmailVerified()) {
       logger.info("[VerificationService] 이미 인증된 이메일입니다: {}", verifyEmailDTO.getEmail());
       // 사용된 인증 코드 삭제
       redisTemplate.delete(key);
-      return true;
+      // return ture가 아닌 보안상 예외처리
+      throw new UnauthorizedException();
     }
 
     // 이메일 인증 상태 업데이트
@@ -70,14 +67,5 @@ public class VerificationService {
 
     logger.info("[VerificationService] 이메일 인증 완료: {}", verifyEmailDTO.getEmail());
     return true;
-  }
-
-  /**
-   * 인증 코드가 유효한지 확인
-   */
-  public boolean isVerificationCodeValid(String email, String code) {
-    String key = EMAIL_VERIFICATION_PREFIX + email;
-    String storedCode = redisTemplate.opsForValue().get(key);
-    return storedCode != null && storedCode.equals(code);
   }
 }

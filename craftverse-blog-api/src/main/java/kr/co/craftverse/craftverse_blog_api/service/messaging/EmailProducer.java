@@ -2,7 +2,7 @@ package kr.co.craftverse.craftverse_blog_api.service.messaging;
 
 import java.util.Random;
 import kr.co.craftverse.craftverse_blog_api.model.dto.EmailMessageDTO;
-import kr.co.craftverse.craftverse_blog_api.service.VerificationService;
+import kr.co.craftverse.craftverse_blog_api.service.EmailVerificationService;
 import org.slf4j.Logger;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 public class EmailProducer {
   private final Logger logger;
   private final RabbitTemplate rabbitTemplate;
-  private final VerificationService verificationService;
+  private final EmailVerificationService verificationService;
 
   @Value("${rabbitmq.exchange.name}")
   private String exchange;
@@ -22,7 +22,7 @@ public class EmailProducer {
 
   public EmailProducer(RabbitTemplate rabbitTemplate,
       Logger logger,
-      VerificationService verificationService) {
+      EmailVerificationService verificationService) {
     this.rabbitTemplate = rabbitTemplate;
     this.logger = logger;
     this.verificationService = verificationService;

@@ -1,4 +1,4 @@
-package kr.co.craftverse.craftverse_blog_api.exception;
+package kr.co.craftverse.craftverse_blog_api.common.exception.http;
 
 public class UnauthorizedException extends RuntimeException {
   public UnauthorizedException() {

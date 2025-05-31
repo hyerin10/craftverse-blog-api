@@ -1,9 +1,13 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.exception.DuplicateResourceException;
-import kr.co.craftverse.craftverse_blog_api.exception.ResourceNotFoundException;
+import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
+import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
+import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.User;
@@ -22,6 +26,7 @@ public class UserService {
   private final PasswordEncoder passwordEncoder;
   private final EmailProducer emailProducer;
   private final Logger logger;
+  private final JwtTokenProvider jwtTokenProvider;
 
   @Transactional
   public UserResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationRequestDTO) {
@@ -67,7 +72,7 @@ public class UserService {
   @Transactional
   public void resendVerificationEmail(String email) {
     User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+        .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
 
     if (user.isEmailVerified()) {
       logger.info("[UserService] 이미 인증된 이메일입니다: {}", email);
@@ -82,5 +87,45 @@ public class UserService {
   public User findById(Long userId) {
     return userRepository.findById(userId)
         .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
+  }
+
+  @Transactional
+  public String login(LoginRequestDTO loginRequestDTO) {
+    // 이메일로 사용자 조회
+    User user = userRepository.findByEmail(loginRequestDTO.getEmail())
+        .orElseThrow(UnauthorizedException::new);
+
+    // 비밀번호 확인
+    if (!passwordEncoder.matches(loginRequestDTO.getPassword(), user.getPassword()))
+      throw new UnauthorizedException();
+
+    // JWT 토큰 생성
+    String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
+
+    userRepository.save(user);
+
+    return accessToken;
+  }
+
+  /**
+   * 로그아웃 처리
+   * JWT 토큰을 블랙리스트에 추가하여 무효화
+   */
+  @Transactional
+  public void logout(HttpServletRequest request) {
+    String token = jwtTokenProvider.resolveToken(request);
+
+    if (token != null && jwtTokenProvider.validateToken(token)) {
+      // 토큰을 블랙리스트에 추가
+      jwtTokenProvider.blacklistToken(token);
+
+      // 로그 추가
+      Long userId = jwtTokenProvider.getUserId(token);
+      String email = jwtTokenProvider.getEmail(token);
+
+      logger.info("[UserService] 로그아웃 완료: userId={}, email={}", userId, email);
+    } else {
+      logger.warn("[UserService] 유효하지 않은 토큰으로 로그아웃 시도");
+    }
   }
 }
