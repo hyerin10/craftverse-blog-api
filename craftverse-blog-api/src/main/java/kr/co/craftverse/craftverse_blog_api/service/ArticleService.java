@@ -1,16 +1,11 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
-import kr.co.craftverse.craftverse_blog_api.common.exception.EmptyDataException;
-import kr.co.craftverse.craftverse_blog_api.exception.ResourceNotFoundException;
+import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchasesDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
@@ -27,13 +22,12 @@ import org.springframework.stereotype.Service;
 public class ArticleService {
   private final ArticleRepository articleRepository;
   private final ArticlePurchaseRepository articlePurchaseRepository;
-  private final ViewCountService viewCountService;
 
   public List<ArticleDTO> getByLanguage(String language) {
     List<Article> articles = articleRepository.findByLanguage(language);
 
     if (articles.isEmpty())
-      throw new EmptyDataException("articles array is null.");
+      throw new NotFoundException("articles array is null.");
 
     List<ArticleDTO> articleDTOs = articles.stream()
         .map(article -> ArticleDTO.builder()
@@ -55,7 +49,7 @@ public class ArticleService {
   }
 
   public ArticleDTO getById(long id) {
-    Article article = articleRepository.getById(id);
+    Article article = articleRepository.findById(id).orElseThrow(() -> new NotFoundException("not found."));;
     ArticleDTO articleDTO = ArticleDTO.builder()
         .id(article.getId())
         .title(article.getTitle())
@@ -72,7 +66,7 @@ public class ArticleService {
     return articleDTO;
   }
 
-  public List<ArticlePurchasesDTO> getPurchasesBylanguage(Long userId, String language) {
+  public List<ArticlePurchasesDTO> getPurchasesByLanguage(Long userId, String language) {
     List<ArticlePurchases> articlePurchases = articlePurchaseRepository.findByUserId(userId);
     List<ArticlePurchasesDTO> articlePurchasesDTO = new ArrayList<>();
 
@@ -80,10 +74,10 @@ public class ArticleService {
       Article article;
       if(language.equals("ko"))
         article = articleRepository.findById(articlePurchase.getArticleIdKo())
-            .orElseThrow(() -> new ResourceNotFoundException("not found."));
+            .orElseThrow(() -> new NotFoundException("not found."));
       else
         article = articleRepository.findById(articlePurchase.getArticleIdEn())
-            .orElseThrow(() -> new ResourceNotFoundException("not found."));
+            .orElseThrow(() -> new NotFoundException("not found."));
 
       ArticlePurchasesDTO articlePurchaseDTO = ArticlePurchasesDTO.builder()
           .id(articlePurchase.getId())
@@ -107,7 +101,7 @@ public class ArticleService {
     return articlePurchasesDTO;
   }
 
-  public Article create(ArticleDTO articleDTO) {
+  public ArticleDTO create(ArticleDTO articleDTO) {
     Article article = Article.builder()
         .title(articleDTO.getTitle())
         .content(articleDTO.getContent())
@@ -121,7 +115,7 @@ public class ArticleService {
         .metaDescription(articleDTO.getMetaDescription())
         .build();
     articleRepository.save(article);
-    return article;
+    return articleDTO;
   }
 
   public ArticleDTO update(long id, ArticleDTO articleDTO) throws IllegalAccessException {

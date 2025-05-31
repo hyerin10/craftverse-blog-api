@@ -2,15 +2,23 @@ package kr.co.craftverse.craftverse_blog_api.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.model.dto.GoogleLoginRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyEmailDTO;
+import kr.co.craftverse.craftverse_blog_api.service.EmailVerificationService;
 import kr.co.craftverse.craftverse_blog_api.service.OAuth2Service;
-import kr.co.craftverse.craftverse_blog_api.service.TokenService;
+import kr.co.craftverse.craftverse_blog_api.service.UserService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,13 +26,54 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+@Slf4j
 @RestController
 @RequestMapping("/auth")
+@Validated
 @RequiredArgsConstructor
-public class OAuth2Controller {
+public class AuthController {
 
+  private final UserService userService;
   private final OAuth2Service oAuth2Service;
-  private final TokenService tokenService;
+  private final EmailVerificationService emailVerificationService;
+
+  // ========== 일반 회원가입/로그인 ==========
+
+  /**
+   * 일반 회원가입
+   */
+  @PostMapping("/register")
+  public RestResult<Map<String, Object>> registerUser(
+      @Valid @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    UserResponseDTO userResponseDTO = userService.registerUser(userRegistrationRequestDTO);
+    data.put("user", userResponseDTO);
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 일반 로그인
+   */
+  @PostMapping("/login")
+  public RestResult<Map<String, Object>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    String accessToken = userService.login(loginRequestDTO);
+    data.put("accessToken", accessToken);
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 이메일 인증
+   */
+  @PostMapping("/verify-email")
+  public RestResult<Map<String, Object>> verifyEmail(@Valid @RequestBody VerifyEmailDTO verifyEmailDTO) {
+    Map<String, Object> data = new LinkedHashMap<>();
+    boolean verified = emailVerificationService.verifyEmail(verifyEmailDTO);
+    data.put("verified", verified);
+    return new RestResult<>(data);
+  }
+
+  // ========== 구글 소셜 로그인 ==========
 
   /**
    * 구글 로그인/회원가입 URL을 반환합니다.
@@ -32,8 +81,7 @@ public class OAuth2Controller {
    */
   @GetMapping("/google/url")
   public RestResult<Map<String, Object>> getGoogleAuthUrl(
-      @RequestParam(value = "action", defaultValue = "login") String action,
-      HttpServletRequest request) {
+      @RequestParam(value = "action", defaultValue = "login") String action) {
 
     Map<String, Object> data = new LinkedHashMap<>();
 
@@ -42,7 +90,7 @@ public class OAuth2Controller {
       action = "login"; // 기본값으로 설정
     }
 
-    String authUrl = oAuth2Service.getGoogleAuthUrl(request, action);
+    String authUrl = oAuth2Service.getGoogleAuthUrl(action);
     data.put("authUrl", authUrl);
     data.put("action", action);
 
@@ -83,6 +131,8 @@ public class OAuth2Controller {
     return new RestResult<>(data);
   }
 
+  // ========== 공통 인증 기능 ==========
+
   /**
    * 토큰 갱신 API
    */
@@ -99,17 +149,19 @@ public class OAuth2Controller {
     return new RestResult<>(data);
   }
 
-  /**
-   * 로그아웃 API
-   */
   @PostMapping("/logout")
-  public RestResult<Map<String, Object>> logout(@RequestParam("userId") Long userId) {
+  public RestResult<Map<String, Object>> logout(HttpServletRequest request) {
     Map<String, Object> data = new LinkedHashMap<>();
-    tokenService.removeTokens(userId);
+
+    // 일반 로그아웃과 소셜 로그아웃을 모두 처리
+    userService.logout(request);
+    oAuth2Service.logout(request);
 
     data.put("message", "로그아웃되었습니다.");
     return new RestResult<>(data);
   }
+
+  // ========== Private Helper Methods ==========
 
   /**
    * state 파라미터에서 action 정보를 추출합니다.

@@ -7,7 +7,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -16,6 +15,7 @@ import kr.co.craftverse.craftverse_blog_api.model.entity.User;
 import kr.co.craftverse.craftverse_blog_api.repository.TokenRepository;
 import kr.co.craftverse.craftverse_blog_api.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -37,6 +37,7 @@ public class OAuth2Service {
   private final TokenRepository tokenRepository;
   private final JwtTokenProvider jwtTokenProvider;
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final Logger logger;
 
   @Value("${spring.security.oauth2.client.registration.google.client-id}")
   private String googleClientId;
@@ -60,7 +61,7 @@ public class OAuth2Service {
    * 구글 로그인/회원가입 URL을 생성합니다.
    * @param action "login" 또는 "signup"
    */
-  public String getGoogleAuthUrl(HttpServletRequest request, String action) {
+  public String getGoogleAuthUrl(String action) {
     String baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 
     // state 파라미터에 action 정보를 포함
@@ -150,7 +151,7 @@ public class OAuth2Service {
    * 새 사용자를 생성합니다.
    */
   @Transactional
-  private User createNewUser(Map<String, Object> userInfo, String accessToken, String refreshToken, Long expiresIn) {
+  public User createNewUser(Map<String, Object> userInfo, String accessToken, String refreshToken, Long expiresIn) {
     String email = (String) userInfo.get("email");
     String sub = (String) userInfo.get("sub");
     String name = (String) userInfo.get("name");
@@ -398,6 +399,24 @@ public class OAuth2Service {
 
     } catch (Exception e) {
       throw new RuntimeException("토큰 갱신 중 오류가 발생했습니다: " + e.getMessage(), e);
+    }
+  }
+
+  @Transactional
+  public void logout(HttpServletRequest request) {
+    String token = jwtTokenProvider.resolveToken(request);
+
+    if (token != null && jwtTokenProvider.validateToken(token)) {
+      // 토큰을 블랙리스트에 추가
+      jwtTokenProvider.blacklistToken(token);
+
+      // 로그 추가
+      Long userId = jwtTokenProvider.getUserId(token);
+      String email = jwtTokenProvider.getEmail(token);
+
+      logger.info("[UserService] 로그아웃 완료: userId={}, email={}", userId, email);
+    } else {
+      logger.warn("[UserService] 유효하지 않은 토큰으로 로그아웃 시도");
     }
   }
 }

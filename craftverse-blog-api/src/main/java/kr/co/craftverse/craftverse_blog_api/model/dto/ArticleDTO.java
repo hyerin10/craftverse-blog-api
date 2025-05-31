@@ -1,5 +1,6 @@
 package kr.co.craftverse.craftverse_blog_api.model.dto;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Valid
 public class ArticleDTO {
   @NotNull
   private Long id;

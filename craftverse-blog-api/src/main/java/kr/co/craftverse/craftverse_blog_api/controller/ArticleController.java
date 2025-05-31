@@ -3,9 +3,11 @@ package kr.co.craftverse.craftverse_blog_api.controller;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.UUID;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.security.CustomUserDetails;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -25,19 +28,22 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@Validated
 public class ArticleController {
   private final ArticleService articleService;
 
   @GetMapping("/articles")
   public RestResult<Map<String, Object>> getByLanguage(
-      @RequestParam(name = "language", defaultValue = "en") String language) {
+      @RequestParam(name = "language", defaultValue = "en")
+      @Pattern(regexp = "ko|en")
+      String language) {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("articles", articleService.getByLanguage(language));
     return new RestResult<>(data);
   }
 
   @GetMapping("/article/{id}")
-  public RestResult<Map<String, Object>> getById(@PathVariable long id) {
+  public RestResult<Map<String, Object>> getById(@PathVariable @Valid @Positive long id) {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("article", articleService.getById(id));
     return new RestResult<>(data);
@@ -51,12 +57,12 @@ public class ArticleController {
       userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
 
     Map<String, Object> data = new LinkedHashMap<>();
-    data.put("article-purchases", articleService.getPurchasesBylanguage(userId, language));
+    data.put("article-purchases", articleService.getPurchasesByLanguage(userId, language));
     return new RestResult<>(data);
   }
 
   @PostMapping("/article")
-  public RestResult<Map<String, Object>> create(@RequestBody ArticleDTO articleDTO) {
+  public RestResult<Map<String, Object>> create(@Valid @RequestBody ArticleDTO articleDTO) {
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("article", articleService.create(articleDTO));
     return new RestResult<>(data);

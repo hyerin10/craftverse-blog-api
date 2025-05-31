@@ -38,12 +38,13 @@ public class SecurityConfig {
         .headers(headers -> headers
             .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
 
-        .authorizeHttpRequests(authorizeRequest -> authorizeRequest
-            .requestMatchers("/users/**", "/article/{id}/views", "/articles", "/auth/**", "/error").permitAll()
-            .requestMatchers("/article-purchases/**").authenticated()
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/article/*/views").permitAll()
+            .requestMatchers("/articles").permitAll()
+            .requestMatchers("/", "/home", "/about").permitAll()
             .anyRequest().authenticated()
         )
-
+        .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/"))
         .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
             SessionCreationPolicy.STATELESS))
         .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
