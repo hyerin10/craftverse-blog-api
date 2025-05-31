@@ -78,4 +78,9 @@ public class UserService {
     emailProducer.sendVerificationEmail(email);
     logger.info("[UserService] 인증 이메일 재발송: {}", email);
   }
+
+  public User findById(Long userId) {
+    return userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
+  }
 }

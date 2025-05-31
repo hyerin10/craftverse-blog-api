@@ -71,7 +71,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
           .profilePictureUrl(pictureUrl)
           .createdAt(currentTime)
           .updatedAt(currentTime)
-          .lastLogin(new Date())
+          .lastLogin(currentTime)
           .loginAttempts(0)
           .accountLocked(false)
           .build();
