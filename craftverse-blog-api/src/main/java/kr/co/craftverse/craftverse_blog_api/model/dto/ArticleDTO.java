@@ -26,7 +26,7 @@ public class ArticleDTO {
   private Boolean isPremium;
   private Long createdAt;
   private Long updatedAt;
-  private Integer viewsCount;
+  private Integer viewCount;
   private String slug;
   private String metaDescription;
 
@@ -39,7 +39,7 @@ public class ArticleDTO {
     Boolean newIsPremium = this.isPremium != null ? this.isPremium : article.getIsPremium();
     Long newCreatedAt = this.createdAt != null ? this.createdAt : article.getCreatedAt();
     Long newUpdatedAt = this.updatedAt != null ? this.updatedAt : article.getUpdatedAt();
-    Integer newViewsCount = this.viewsCount != null ? this.viewsCount : article.getViewsCount();
+    Integer newViewsCount = this.viewCount != null ? this.viewCount : article.getViewCount();
     String newSlug = this.slug != null ? this.slug : article.getSlug();
     String newMetaDescription = this.metaDescription != null ? this.metaDescription : article.getMetaDescription();
 
@@ -52,7 +52,7 @@ public class ArticleDTO {
         .isPremium(newIsPremium)
         .createdAt(newCreatedAt)
         .updatedAt(newUpdatedAt)
-        .viewsCount(newViewsCount)
+        .viewCount(newViewsCount)
         .slug(newSlug)
         .metaDescription(newMetaDescription)
         .build();
