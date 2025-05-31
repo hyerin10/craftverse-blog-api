@@ -27,27 +27,44 @@ public class OAuth2Controller {
   private final TokenService tokenService;
 
   /**
-   * 구글 로그인 URL을 반환합니다.
+   * 구글 로그인/회원가입 URL을 반환합니다.
+   * @param action "login" 또는 "signup"
    */
   @GetMapping("/google/url")
-  public RestResult<Map<String, Object>> getGoogleAuthUrl(HttpServletRequest request) {
+  public RestResult<Map<String, Object>> getGoogleAuthUrl(
+      @RequestParam(value = "action", defaultValue = "login") String action,
+      HttpServletRequest request) {
+
     Map<String, Object> data = new LinkedHashMap<>();
-    String authUrl = oAuth2Service.getGoogleAuthUrl(request);
+
+    // action 파라미터 검증
+    if (!"login".equals(action) && !"signup".equals(action)) {
+      action = "login"; // 기본값으로 설정
+    }
+
+    String authUrl = oAuth2Service.getGoogleAuthUrl(request, action);
     data.put("authUrl", authUrl);
+    data.put("action", action);
+
     return new RestResult<>(data);
   }
 
   /**
-   * 구글 로그인 콜백을 처리합니다.
+   * 구글 로그인/회원가입 콜백을 처리합니다.
    */
   @GetMapping("/google/callback")
   public ResponseEntity<Void> googleCallback(
       @RequestParam("code") String code,
+      @RequestParam(value = "state", required = false) String state,
       HttpServletRequest request,
       HttpServletResponse response) throws Exception {
 
-    // 구글 인증 코드로 로그인 처리 및 리다이렉트
-    String redirectUrl = oAuth2Service.processGoogleCallback(code, request, response);
+    // state 파라미터에서 action 정보 추출 (로그인/회원가입 구분)
+    String action = extractActionFromState(state);
+
+    // 구글 인증 코드로 로그인/회원가입 처리 및 리다이렉트
+    String redirectUrl = oAuth2Service.processGoogleCallback(code, action, request, response);
+
     return ResponseEntity.status(HttpStatus.FOUND)
         .header("Location", redirectUrl)
         .build();
@@ -92,5 +109,19 @@ public class OAuth2Controller {
 
     data.put("message", "로그아웃되었습니다.");
     return new RestResult<>(data);
+  }
+
+  /**
+   * state 파라미터에서 action 정보를 추출합니다.
+   * state 형식: "action=login" 또는 "action=signup"
+   */
+  private String extractActionFromState(String state) {
+    if (state != null && state.startsWith("action=")) {
+      String action = state.substring(7); // "action=" 제거
+      if ("login".equals(action) || "signup".equals(action)) {
+        return action;
+      }
+    }
+    return "login"; // 기본값
   }
 }
