@@ -101,40 +101,6 @@ public class ArticleService {
     return articlePurchasesDTO;
   }
 
-  public ArticleDTO create(ArticleDTO articleDTO) {
-    Article article = Article.builder()
-        .title(articleDTO.getTitle())
-        .content(articleDTO.getContent())
-        .category(articleDTO.getCategory())
-        .language(articleDTO.getLanguage())
-        .isPremium(articleDTO.getIsPremium())
-        .createdAt(articleDTO.getCreatedAt())
-        .updatedAt(articleDTO.getUpdatedAt())
-        .viewCount(articleDTO.getViewCount())
-        .slug(articleDTO.getSlug())
-        .metaDescription(articleDTO.getMetaDescription())
-        .build();
-    articleRepository.save(article);
-    return articleDTO;
-  }
-
-  public ArticleDTO update(long id, ArticleDTO articleDTO) throws IllegalAccessException {
-    Article article = articleRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Article not found."));
-    try {
-      articleRepository.save(articleDTO.patchArticle(article));
-      return articleDTO;
-    } catch (Exception e) {
-      throw new IllegalAccessException("didn't save");
-    }
-  }
-
-  public void delete(long id) throws Exception {
-    Article article = articleRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Article not found"));
-    articleRepository.delete(article);
-  }
-
   @Transactional
   public Integer incrementViewCount(Long id) {
     Article article = articleRepository.findById(id)

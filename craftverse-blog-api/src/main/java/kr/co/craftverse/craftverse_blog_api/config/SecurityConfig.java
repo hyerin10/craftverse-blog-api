@@ -29,26 +29,25 @@ public class SecurityConfig {
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
-        .csrf(AbstractHttpConfigurer::disable)
         .cors(Customizer.withDefaults())
-
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
-
-        .headers(headers -> headers
-            .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin))
-
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/article/*/views").permitAll()
+            .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles").permitAll()
             .requestMatchers("/", "/home", "/about").permitAll()
             .anyRequest().authenticated()
         )
-        .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("/"))
-        .sessionManagement(sessionManagement -> sessionManagement.sessionCreationPolicy(
-            SessionCreationPolicy.STATELESS))
-        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+        .oauth2Login(oauth2 -> oauth2
+            .defaultSuccessUrl("/")
+            .permitAll()
+        )
+        .sessionManagement(sessionManagement ->
+            sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
+            UsernamePasswordAuthenticationFilter.class);
 
-        return http.build();
+    return http.build();
   }
 }
