@@ -26,13 +26,24 @@ public class GlobalExceptionHandler {
       DuplicateResourceException.class,
       MethodArgumentNotValidException.class,
       ConstraintViolationException.class,
-      MissingServletRequestParameterException.class
+      MissingServletRequestParameterException.class,
+      ArithmeticException.class
   })
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   public RestError handleBadRequest(Exception  e) {
     String errorMessage = "Bad Request";
     log.error(errorMessage, e);
     return new RestError(HttpStatus.BAD_REQUEST, errorMessage);
+  }
+
+  @ExceptionHandler({
+      NotFoundException.class,
+      MethodArgumentTypeMismatchException.class
+  })
+  @ResponseStatus(HttpStatus.NOT_FOUND)
+  public RestError handleNotFound(Exception  e) {
+    log.error("Not Found", e);
+    return new RestError(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   @ExceptionHandler({
@@ -43,15 +54,6 @@ public class GlobalExceptionHandler {
     String errorMessage = "Method Not Allowed";
     log.error(errorMessage, e);
     return new RestError(HttpStatus.METHOD_NOT_ALLOWED, errorMessage);
-  }
-
-  @ExceptionHandler({
-      NotFoundException.class
-  })
-  @ResponseStatus(HttpStatus.NOT_FOUND)
-  public RestError handleNotFound(Exception  e) {
-    log.error("Not Found", e);
-    return new RestError(HttpStatus.NOT_FOUND, e.getMessage());
   }
 
   @ExceptionHandler({UnauthorizedException.class,
