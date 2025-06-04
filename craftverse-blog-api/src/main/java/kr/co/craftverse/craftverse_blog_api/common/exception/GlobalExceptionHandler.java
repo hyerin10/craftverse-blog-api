@@ -1,5 +1,6 @@
 package kr.co.craftverse.craftverse_blog_api.common.exception;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.validation.ConstraintViolationException;
 import java.net.SocketTimeoutException;
@@ -69,7 +70,9 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler({SocketTimeoutException.class,
-      RuntimeException.class})
+      RuntimeException.class,
+      JsonProcessingException.class
+  })
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public RestError handleInternalServerError(Exception e) {
     String errorMessage = "";
