@@ -2,6 +2,7 @@ package kr.co.craftverse.craftverse_blog_api.common.exception;
 
 import io.jsonwebtoken.MalformedJwtException;
 import jakarta.validation.ConstraintViolationException;
+import java.net.SocketTimeoutException;
 import kr.co.craftverse.craftverse_blog_api.common.RestError;
 import kr.co.craftverse.craftverse_blog_api.exception.DuplicateResourceException;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.handler.annotation.support.MethodArgumentTypeMismatchException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -57,11 +59,21 @@ public class GlobalExceptionHandler {
   }
 
   @ExceptionHandler({UnauthorizedException.class,
-      MalformedJwtException.class})
+      MalformedJwtException.class,
+      OAuth2AuthenticationException.class})
   @ResponseStatus(HttpStatus.UNAUTHORIZED)
   public RestError handleUnauthorizedException(Exception e) {
     String errorMessage = "";
     log.error(errorMessage, e);
     return new RestError(HttpStatus.UNAUTHORIZED, errorMessage);
+  }
+
+  @ExceptionHandler({SocketTimeoutException.class,
+      RuntimeException.class})
+  @ResponseStatus(HttpStatus.UNAUTHORIZED)
+  public RestError handleInternalServerError(Exception e) {
+    String errorMessage = "";
+    log.error(errorMessage, e);
+    return new RestError(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
   }
 }

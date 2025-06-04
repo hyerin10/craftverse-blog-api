@@ -1,5 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.googleOauthBaseUrl;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -10,6 +12,7 @@ import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.entity.User;
 import kr.co.craftverse.craftverse_blog_api.repository.TokenRepository;
@@ -62,12 +65,10 @@ public class OAuth2Service {
    * @param action "login" 또는 "signup"
    */
   public String getGoogleAuthUrl(String action) {
-    String baseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
-
-    // state 파라미터에 action 정보를 포함
+     // state 파라미터에 action 정보를 포함
     String state = "action=" + action;
 
-    return UriComponentsBuilder.fromHttpUrl(baseUrl)
+    return UriComponentsBuilder.fromHttpUrl(googleOauthBaseUrl)
         .queryParam("client_id", googleClientId)
         .queryParam("redirect_uri", redirectUri)
         .queryParam("response_type", "code")
@@ -363,7 +364,7 @@ public class OAuth2Service {
       String storedRefreshToken = tokenRepository.getRefreshToken(userId);
 
       if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
-        throw new RuntimeException("유효하지 않은 리프레시 토큰입니다.");
+        throw new UnauthorizedException();
       }
 
       // 구글 API로 액세스 토큰 갱신

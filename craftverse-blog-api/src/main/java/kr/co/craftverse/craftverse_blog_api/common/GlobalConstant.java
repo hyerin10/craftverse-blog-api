@@ -5,4 +5,5 @@ public class GlobalConstant {
   public static final String ACCESS_TOKEN_PREFIX = "access_token:";
   public static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
   public static final String BLACKLIST_PREFIX = "blacklist:";
+  public static final String googleOauthBaseUrl = "https://accounts.google.com/o/oauth2/v2/auth";
 }
