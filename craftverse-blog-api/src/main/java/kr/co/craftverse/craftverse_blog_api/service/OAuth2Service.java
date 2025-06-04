@@ -1,7 +1,8 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
-import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.googleOauthBaseUrl;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.GOGGLE_OAUTH_BASE_URL;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
@@ -68,7 +69,7 @@ public class OAuth2Service {
      // state 파라미터에 action 정보를 포함
     String state = "action=" + action;
 
-    return UriComponentsBuilder.fromHttpUrl(googleOauthBaseUrl)
+    return UriComponentsBuilder.fromHttpUrl(GOGGLE_OAUTH_BASE_URL)
         .queryParam("client_id", googleClientId)
         .queryParam("redirect_uri", redirectUri)
         .queryParam("response_type", "code")
@@ -181,10 +182,8 @@ public class OAuth2Service {
 
     // Redis에 토큰 저장
     tokenRepository.saveAccessToken(user.getId(), accessToken, expiresIn);
-    if (refreshToken != null) {
-      // 리프레시 토큰은 더 오래 보관 (30일)
-      tokenRepository.saveRefreshToken(user.getId(), refreshToken, 30 * 24 * 60 * 60);
-    }
+    if (refreshToken != null)
+      tokenRepository.saveRefreshToken(user.getId(), refreshToken, 30 * 24 * 60 * 60); // 리프레시 토큰은 (30일)
 
     return user;
   }
@@ -193,29 +192,25 @@ public class OAuth2Service {
    * 쿠키를 설정합니다.
    */
   private void setCookies(HttpServletResponse response, String jwtToken) {
-    try {
-      // 방법 1: 기본 쿠키
-      Cookie authCookie = new Cookie("auth_token", jwtToken);
-      authCookie.setPath("/");
-      authCookie.setHttpOnly(true);
-      authCookie.setMaxAge((int) (tokenExpirationMs / 1000));
-      response.addCookie(authCookie);
+    // 방법 1: 기본 쿠키
+    Cookie authCookie = new Cookie("auth_token", jwtToken);
+    authCookie.setPath("/");
+    authCookie.setHttpOnly(true);
+    authCookie.setMaxAge((int) (tokenExpirationMs / 1000));
+    response.addCookie(authCookie);
 
-      // 방법 2: ResponseCookie로 직접 헤더 설정
-      response.addHeader("Set-Cookie",
-          String.format("auth_token=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=Lax",
-              jwtToken, (int) (tokenExpirationMs / 1000)));
+    // 방법 2: ResponseCookie로 직접 헤더 설정
+    response.addHeader("Set-Cookie",
+        String.format("auth_token=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=Lax",
+            jwtToken, (int) (tokenExpirationMs / 1000)));
 
-      // 방법 3: 일반 쿠키로도 설정 (테스트용)
-      Cookie testCookie = new Cookie("test_auth_token", jwtToken);
-      testCookie.setPath("/");
-      testCookie.setMaxAge((int) (tokenExpirationMs / 1000));
-      response.addCookie(testCookie);
+    // 방법 3: 일반 쿠키로도 설정 (테스트용)
+    Cookie testCookie = new Cookie("test_auth_token", jwtToken);
+    testCookie.setPath("/");
+    testCookie.setMaxAge((int) (tokenExpirationMs / 1000));
+    response.addCookie(testCookie);
 
-      System.out.println("🔧 쿠키 설정 완료 - 토큰 길이: " + jwtToken.length());
-    } catch (Exception e) {
-      System.out.println("쿠키 설정 중 오류 발생: " + e);
-    }
+    logger.info("쿠키 설정 완료 - 토큰 길이: " + jwtToken.length());
   }
 
   /**
@@ -272,30 +267,30 @@ public class OAuth2Service {
    */
   @Transactional
   public Map<String, String> loginWithGoogle(String code) {
-    try {
-      // 구글에서 액세스 토큰 얻기
-      Map<String, Object> tokenResponse = getGoogleTokens(code);
-      String accessToken = (String) tokenResponse.get("access_token");
-      String refreshToken = (String) tokenResponse.get("refresh_token");
-      Long expiresIn = ((Integer) tokenResponse.get("expires_in")).longValue();
+    // 구글에서 액세스 토큰 얻기
+    Map<String, Object> tokenResponse = getGoogleTokens(code);
+    String accessToken = (String) tokenResponse.get("access_token");
+    String refreshToken = (String) tokenResponse.get("refresh_token");
+    Long expiresIn = ((Integer) tokenResponse.get("expires_in")).longValue();
 
-      // 구글 사용자 정보 얻기
-      Map<String, Object> userInfo = getGoogleUserInfo(accessToken);
+    // 구글 사용자 정보 얻기
+    Map<String, Object> userInfo = getGoogleUserInfo(accessToken);
 
-      // 사용자 정보로 로그인 처리 (기존 사용자 또는 새 사용자 자동 생성)
-      User user = processUserLogin(userInfo, accessToken, refreshToken, expiresIn);
+    // 사용자 정보로 로그인 처리 (기존 사용자 또는 새 사용자 자동 생성)
+    User user = processUserLogin(userInfo, accessToken, refreshToken, expiresIn);
 
-      // JWT 토큰 생성
-      String jwtToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
+    // JWT 토큰 생성
+    String jwtToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
 
-      Map<String, String> result = new HashMap<>();
-      result.put("accessToken", jwtToken);
+    Map<String, String> result = new HashMap<>();
+    result.put("accessToken", jwtToken);
+    result.put("refreshToken", refreshToken);
+    try{
       result.put("user", objectMapper.writeValueAsString(user));
-
-      return result;
-    } catch (Exception e) {
-      throw new RuntimeException("구글 로그인 처리 중 오류가 발생했습니다: " + e.getMessage(), e);
+    } catch (JsonProcessingException e) {
+      logger.error("JsonProcessingException: "+e.getMessage());
     }
+    return result;
   }
 
   /**
@@ -347,10 +342,8 @@ public class OAuth2Service {
 
     // Redis에 토큰 저장
     tokenRepository.saveAccessToken(user.getId(), accessToken, expiresIn);
-    if (refreshToken != null) {
-      // 리프레시 토큰은 더 오래 보관 (30일)
-      tokenRepository.saveRefreshToken(user.getId(), refreshToken, 30 * 24 * 60 * 60);
-    }
+    if (refreshToken != null)
+      tokenRepository.saveRefreshToken(user.getId(), refreshToken, 30 * 24 * 60 * 60); // 리프레시 토큰 (30일)
 
     return user;
   }
@@ -359,13 +352,11 @@ public class OAuth2Service {
    * 리프레시 토큰을 사용하여 액세스 토큰을 갱신합니다.
    */
   public String refreshAccessToken(Long userId, String email, String refreshToken) {
-    try {
       // Redis에서 리프레시 토큰 확인
       String storedRefreshToken = tokenRepository.getRefreshToken(userId);
 
-      if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+      if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken))
         throw new UnauthorizedException();
-      }
 
       // 구글 API로 액세스 토큰 갱신
       String tokenUrl = "https://oauth2.googleapis.com/token";
@@ -397,10 +388,6 @@ public class OAuth2Service {
 
       // JWT 토큰 새로 생성
       return jwtTokenProvider.createAccessToken(userId, email);
-
-    } catch (Exception e) {
-      throw new RuntimeException("토큰 갱신 중 오류가 발생했습니다: " + e.getMessage(), e);
-    }
   }
 
   @Transactional

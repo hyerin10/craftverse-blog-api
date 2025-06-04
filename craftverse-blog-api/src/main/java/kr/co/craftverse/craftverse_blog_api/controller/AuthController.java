@@ -1,5 +1,9 @@
 package kr.co.craftverse.craftverse_blog_api.controller;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ACTION_LOGIN;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ACTION_SIGNUP;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.STATE_PREFIX_ACTION;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -19,7 +23,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -83,13 +86,13 @@ public class AuthController {
    */
   @GetMapping("/google/url")
   public RestResult<Map<String, Object>> getGoogleAuthUrl(
-      @RequestParam(value = "action", defaultValue = "login") String action) {
+      @RequestParam(value = "action", defaultValue = ACTION_LOGIN) String action) {
 
     Map<String, Object> data = new LinkedHashMap<>();
 
     // action 파라미터 검증
-    if (!"login".equals(action) && !"signup".equals(action)) {
-      action = "login"; // 기본값으로 설정
+    if (!ACTION_LOGIN.equals(action) && !ACTION_SIGNUP.equals(action)) {
+      action = ACTION_LOGIN; // 기본값으로 설정
     }
 
     String authUrl = oAuth2Service.getGoogleAuthUrl(action);
@@ -178,12 +181,8 @@ public class AuthController {
    * state 형식: "action=login" 또는 "action=signup"
    */
   private String extractActionFromState(String state) {
-    if (state != null && state.startsWith("action=")) {
-      String action = state.substring(7); // "action=" 제거
-      if ("login".equals(action) || "signup".equals(action)) {
-        return action;
-      }
-    }
-    return "login"; // 기본값
+    if (state != null && state.startsWith(STATE_PREFIX_ACTION + ACTION_SIGNUP))
+      return ACTION_SIGNUP;
+    return ACTION_LOGIN;
   }
 }
