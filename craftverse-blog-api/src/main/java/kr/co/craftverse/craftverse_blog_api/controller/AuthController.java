@@ -78,6 +78,19 @@ public class AuthController {
     return new RestResult<>(data);
   }
 
+  @PostMapping("/resend-verification")
+  public RestResult<Map<String, Object>> resendVerificationEmail(
+      @RequestParam("email") String email) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    // UserService의 resendVerificationEmail 메서드 호출
+    userService.resendVerificationEmail(email);
+
+    data.put("message", "인증 코드가 재전송되었습니다.");
+    return new RestResult<>(data);
+  }
+
   // ========== 구글 소셜 로그인 ==========
 
   /**
