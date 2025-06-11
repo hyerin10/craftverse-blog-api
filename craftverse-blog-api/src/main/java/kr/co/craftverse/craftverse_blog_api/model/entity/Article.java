@@ -57,15 +57,10 @@ public class Article {
     this.metaDescription = articleDTO.getMetaDescription();
   }
 
-  public void updateModifiedTime(Long currentTimeMillis) {
-    this.updatedAt = currentTimeMillis;
-  }
-
-  public Integer incrementViewCount() {
+  public void incrementViewCount() {
     if (this.viewCount == null)
       this.viewCount = 1;
     else
-      this.viewCount = this.viewCount + 1;
-    return this.viewCount;
+      this.viewCount += 1;
   }
 }

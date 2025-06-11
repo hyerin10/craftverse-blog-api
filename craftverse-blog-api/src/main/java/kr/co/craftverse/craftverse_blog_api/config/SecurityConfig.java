@@ -30,19 +30,18 @@ public class SecurityConfig {
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
         .cors(Customizer.withDefaults())
+        .csrf(csrf -> csrf
+            .ignoringRequestMatchers("/auth/**") // API 경로는 CSRF 제외
+        )
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/register", "/auth/login", "/auth/logout", "/auth/verify-email", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
+            .requestMatchers("/auth/register", "/auth/login", "/auth/logout", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
             .requestMatchers("/article/*/views").permitAll()
             .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles").permitAll()
             .requestMatchers("/", "/home", "/about").permitAll()
             .anyRequest().authenticated()
-        )
-        .oauth2Login(oauth2 -> oauth2
-            .defaultSuccessUrl("/")
-            .permitAll()
         )
         .sessionManagement(sessionManagement ->
             sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
