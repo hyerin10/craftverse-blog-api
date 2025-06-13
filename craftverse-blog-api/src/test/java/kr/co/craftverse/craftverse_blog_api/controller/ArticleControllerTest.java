@@ -230,7 +230,7 @@ class ArticleControllerTest {
       Long[] nonExistentIds = {999L, 1000L, 9999L};
 
       for (Long id : nonExistentIds) {
-        when(articleService.getById(id)).thenThrow(new NotFoundException("Article not found"));
+        when(articleService.getById(id)).thenThrow(new NotFoundException());
 
         // When & Then
         mockMvc.perform(get("/article/" + id))
@@ -600,7 +600,7 @@ class ArticleControllerTest {
       // Given
       Long nonExistentId = 999L;
       when(articleService.incrementViewCount(nonExistentId))
-          .thenThrow(new NotFoundException("Article not found"));
+          .thenThrow(new NotFoundException());
 
       // When & Then
       mockMvc.perform(post("/article/" + nonExistentId + "/views").with(csrf()))

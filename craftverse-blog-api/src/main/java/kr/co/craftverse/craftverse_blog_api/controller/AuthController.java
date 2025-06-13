@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
+import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.GoogleLoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
@@ -24,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +43,7 @@ public class AuthController {
   private final UserService userService;
   private final OAuth2Service oAuth2Service;
   private final EmailVerificationService emailVerificationService;
+  private final JwtTokenProvider jwtTokenProvider;
 
   // ========== 일반 회원가입/로그인 ==========
 
@@ -184,6 +187,22 @@ public class AuthController {
     oAuth2Service.logout(request);
 
     data.put("message", "로그아웃되었습니다.");
+    return new RestResult<>(data);
+  }
+
+  @DeleteMapping("/user")
+  public RestResult<Map<String, Object>> delete(HttpServletRequest request) {
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    String token = jwtTokenProvider.resolveToken(request);
+    if (token == null || !jwtTokenProvider.validateToken(token))
+      throw new UnauthorizedException();
+
+    Long userId = jwtTokenProvider.getUserId(token);
+    userService.delete(userId);
+    jwtTokenProvider.blacklistToken(token);
+
+    data.put("message", "success");
     return new RestResult<>(data);
   }
 
