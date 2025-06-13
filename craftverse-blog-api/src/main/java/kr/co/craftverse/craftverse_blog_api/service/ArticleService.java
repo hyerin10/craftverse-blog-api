@@ -27,7 +27,7 @@ public class ArticleService {
     List<Article> articles = articleRepository.findByLanguage(language);
 
     if (articles.isEmpty())
-      throw new NotFoundException("articles array is null.");
+      throw new NotFoundException();
 
     List<ArticleDTO> articleDTOs = articles.stream()
         .map(article -> ArticleDTO.builder()
@@ -49,7 +49,7 @@ public class ArticleService {
   }
 
   public ArticleDTO getById(long id) {
-    Article article = articleRepository.findById(id).orElseThrow(() -> new NotFoundException("not found."));;
+    Article article = articleRepository.findById(id).orElseThrow(NotFoundException::new);;
     ArticleDTO articleDTO = ArticleDTO.builder()
         .id(article.getId())
         .title(article.getTitle())
@@ -74,10 +74,10 @@ public class ArticleService {
       Article article;
       if(language.equals("ko"))
         article = articleRepository.findById(articlePurchase.getArticleIdKo())
-            .orElseThrow(() -> new NotFoundException("not found."));
+            .orElseThrow(NotFoundException::new);
       else
         article = articleRepository.findById(articlePurchase.getArticleIdEn())
-            .orElseThrow(() -> new NotFoundException("not found."));
+            .orElseThrow(NotFoundException::new);
 
       ArticlePurchasesDTO articlePurchaseDTO = ArticlePurchasesDTO.builder()
           .id(articlePurchase.getId())

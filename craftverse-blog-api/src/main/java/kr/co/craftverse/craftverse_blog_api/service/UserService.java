@@ -72,7 +72,7 @@ public class UserService {
   @Transactional
   public void resendVerificationEmail(String email) {
     User user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new NotFoundException("User not found with email: " + email));
+        .orElseThrow(NotFoundException::new);
 
     if (user.isEmailVerified()) {
       logger.info("[UserService] 이미 인증된 이메일입니다: {}", email);
@@ -86,7 +86,7 @@ public class UserService {
 
   public User findById(Long userId) {
     return userRepository.findById(userId)
-        .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다. ID: " + userId));
+        .orElseThrow(NotFoundException::new);
   }
 
   @Transactional
@@ -127,5 +127,16 @@ public class UserService {
     } else {
       logger.warn("[UserService] 유효하지 않은 토큰으로 로그아웃 시도");
     }
+  }
+
+  /**
+   * 계정 삭제 처리
+   * 사용자 정보 삭제 및 JWT 토큰 무효화
+   */
+  @Transactional
+  public void delete(Long userId) {
+    User user = userRepository.findById(userId).orElseThrow(UnauthorizedException::new);
+    userRepository.delete(user);
+    logger.info("[UserService] 계정 삭제 완료: userId={}, email={}", userId, user.getEmail());
   }
 }
