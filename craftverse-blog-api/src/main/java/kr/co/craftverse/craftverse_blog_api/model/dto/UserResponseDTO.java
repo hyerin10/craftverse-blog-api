@@ -19,4 +19,5 @@ public class UserResponseDTO {
   private String postalCode;
   private Long createdAt;
   private Long updatedAt;
+  private Boolean emailVerified;
 }

@@ -6,10 +6,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Getter
@@ -123,4 +125,30 @@ public class User {
   public Boolean getAccountLocked() {
     return this.accountLocked;
   }
+
+  public void patchFromDto(UserRegistrationRequestDTO userRegistrationRequestDTO, PasswordEncoder passwordEncoder) {
+    if (userRegistrationRequestDTO.getFirstName() != null && !userRegistrationRequestDTO.getFirstName().trim().isEmpty())
+      this.firstName = userRegistrationRequestDTO.getFirstName().trim();
+
+    if (userRegistrationRequestDTO.getLastName() != null && !userRegistrationRequestDTO.getLastName().trim().isEmpty())
+      this.lastName = userRegistrationRequestDTO.getLastName().trim();
+
+    if (userRegistrationRequestDTO.getEmail() != null && !userRegistrationRequestDTO.getEmail().trim().isEmpty())
+      this.email = userRegistrationRequestDTO.getEmail().trim();
+
+    if (userRegistrationRequestDTO.getPassword() != null && !userRegistrationRequestDTO.getPassword().trim().isEmpty())
+      this.password = passwordEncoder.encode(userRegistrationRequestDTO.getPassword());
+
+    if (userRegistrationRequestDTO.getBirthDate() != null)
+      this.birthDate = userRegistrationRequestDTO.getBirthDate();
+
+    if (userRegistrationRequestDTO.getCountry() != null)
+      this.country = userRegistrationRequestDTO.getCountry().trim();
+
+    if (userRegistrationRequestDTO.getPostalCode() != null)
+      this.postalCode = userRegistrationRequestDTO.getPostalCode().trim();
+
+    this.updatedAt = java.time.Instant.now().getEpochSecond();
+  }
 }
+

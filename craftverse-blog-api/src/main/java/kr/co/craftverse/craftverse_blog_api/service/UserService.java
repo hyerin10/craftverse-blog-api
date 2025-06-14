@@ -28,10 +28,61 @@ public class UserService {
   private final Logger logger;
   private final JwtTokenProvider jwtTokenProvider;
 
+  /**
+   * 현재 사용자 정보 조회
+   */
+  public UserResponseDTO getCurrentUser(Long userId) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(UnauthorizedException::new);
+
+    return UserResponseDTO.builder()
+        .id(user.getId())
+        .firstName(user.getFirstName())
+        .lastName(user.getLastName())
+        .email(user.getEmail())
+        .birthDate(user.getBirthDate())
+        .country(user.getCountry())
+        .postalCode(user.getPostalCode())
+        .emailVerified(user.isEmailVerified())
+        .createdAt(user.getCreatedAt())
+        .build();
+  }
+
+  @Transactional
+  public UserResponseDTO patchUser(Long userId, UserRegistrationRequestDTO updateRequest) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(NotFoundException::new);
+
+    // 이메일 중복 검사 (변경하려는 경우에만)
+    if (updateRequest.getEmail() != null &&
+        !updateRequest.getEmail().trim().isEmpty() &&
+        !updateRequest.getEmail().equals(user.getEmail())) {
+      if (userRepository.existsByEmail(updateRequest.getEmail()))
+        throw new DuplicateResourceException();
+    }
+
+    // 엔티티의 patch 메서드를 사용하여 업데이트
+    user.patchFromDto(updateRequest, passwordEncoder);
+
+    User savedUser = userRepository.save(user);
+    return UserResponseDTO.builder()
+        .id(savedUser.getId())
+        .firstName(savedUser.getFirstName())
+        .lastName(savedUser.getLastName())
+        .email(savedUser.getEmail())
+        .birthDate(savedUser.getBirthDate() != null ? savedUser.getBirthDate() : null)
+        .country(savedUser.getCountry())
+        .postalCode(savedUser.getPostalCode())
+        .createdAt(savedUser.getCreatedAt())
+        .updatedAt(savedUser.getUpdatedAt())
+        .emailVerified(savedUser.getEmailVerified())
+        .build();
+  }
+
   @Transactional
   public UserResponseDTO registerUser(UserRegistrationRequestDTO userRegistrationRequestDTO) {
     if (userRepository.existsByEmail(userRegistrationRequestDTO.getEmail()))
-      throw new DuplicateResourceException("Email already exists");
+      throw new DuplicateResourceException();
 
     Long currentTime = Instant.now().getEpochSecond();
 

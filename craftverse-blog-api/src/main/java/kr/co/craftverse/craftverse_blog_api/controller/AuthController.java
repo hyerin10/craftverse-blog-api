@@ -27,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +45,71 @@ public class AuthController {
   private final OAuth2Service oAuth2Service;
   private final EmailVerificationService emailVerificationService;
   private final JwtTokenProvider jwtTokenProvider;
+
+  /**
+   * 현재 사용자 정보 조회 API
+   */
+  @GetMapping("/me")
+  public RestResult<Map<String, Object>> getCurrentUser(HttpServletRequest request) {
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    String token = jwtTokenProvider.resolveToken(request);
+    if (token == null || !jwtTokenProvider.validateToken(token))
+      throw new UnauthorizedException();
+
+    Long userId = jwtTokenProvider.getUserId(token);
+    UserResponseDTO user = userService.getCurrentUser(userId);
+
+    data.put("user", user);
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 사용자 정보 부분 수정 API (PATCH)
+   */
+  @PatchMapping("/user")
+  public RestResult<Map<String, Object>> patchUser(
+      @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO, HttpServletRequest request) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    String token = jwtTokenProvider.resolveToken(request);
+    if (token == null || !jwtTokenProvider.validateToken(token))
+      throw new UnauthorizedException();
+
+    Long userId = jwtTokenProvider.getUserId(token);
+
+    // 부분 업데이트 처리
+    UserResponseDTO updatedUser = userService.patchUser(userId, userRegistrationRequestDTO);
+
+    data.put("user", updatedUser);
+
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 간단한 토큰 검증 API (사용자 정보 없이)
+   */
+  @PostMapping("/validate-token")
+  public RestResult<Map<String, Object>> validateTokenOnly(HttpServletRequest request) {
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    String token = jwtTokenProvider.resolveToken(request);
+    boolean isValid = token != null && jwtTokenProvider.validateToken(token);
+
+    data.put("valid", isValid);
+
+    if (isValid) {
+      Long userId = jwtTokenProvider.getUserId(token);
+      String email = jwtTokenProvider.getEmail(token);
+      data.put("tokenInfo", Map.of(
+          "userId", userId,
+          "email", email
+      ));
+    }
+
+    return new RestResult<>(data);
+  }
 
   // ========== 일반 회원가입/로그인 ==========
 
