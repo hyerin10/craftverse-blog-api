@@ -91,7 +91,7 @@ class AuthControllerTest {
       UserRegistrationRequestDTO requestDTO = createUserRegistrationRequestDTO();
 
       when(userService.registerUser(any(UserRegistrationRequestDTO.class)))
-          .thenThrow(new DuplicateResourceException("Email already exists"));
+          .thenThrow(new DuplicateResourceException());
 
       // when & then
       mockMvc.perform(post("/auth/register")
