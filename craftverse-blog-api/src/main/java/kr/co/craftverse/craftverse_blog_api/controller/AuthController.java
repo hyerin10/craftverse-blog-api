@@ -26,6 +26,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,6 +48,13 @@ public class AuthController {
   private final OAuth2Service oAuth2Service;
   private final EmailVerificationService emailVerificationService;
   private final JwtTokenProvider jwtTokenProvider;
+
+  @GetMapping("/csrf")
+  public RestResult<Map<String, String>> getCsrfToken(CsrfToken token) {
+    Map<String, String> data = new LinkedHashMap<>();
+    data.put("csrfToken", token.getToken());
+    return new RestResult<>(data);
+  }
 
   /**
    * 현재 사용자 정보 조회 API
