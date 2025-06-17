@@ -6,7 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.OAuthUserUpdateRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.UserUpdateRequestDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -96,8 +97,6 @@ public class User {
     this.lastLogin = java.time.Instant.now().getEpochSecond();
   }
 
-  // === 편의 메서드들 (boolean 타입 호환성을 위해) ===
-
   /**
    * 이메일 인증 여부 확인 (boolean 타입 반환)
    */
@@ -126,27 +125,46 @@ public class User {
     return this.accountLocked;
   }
 
-  public void patchFromDto(UserRegistrationRequestDTO userRegistrationRequestDTO, PasswordEncoder passwordEncoder) {
-    if (userRegistrationRequestDTO.getFirstName() != null && !userRegistrationRequestDTO.getFirstName().trim().isEmpty())
-      this.firstName = userRegistrationRequestDTO.getFirstName().trim();
+  public void patchUserFromDto(UserUpdateRequestDTO userUpdateRequestDTO, PasswordEncoder passwordEncoder) {
+    if (userUpdateRequestDTO.getFirstName() != null && !userUpdateRequestDTO.getFirstName().trim().isEmpty())
+      this.firstName = userUpdateRequestDTO.getFirstName().trim();
 
-    if (userRegistrationRequestDTO.getLastName() != null && !userRegistrationRequestDTO.getLastName().trim().isEmpty())
-      this.lastName = userRegistrationRequestDTO.getLastName().trim();
+    if (userUpdateRequestDTO.getLastName() != null && !userUpdateRequestDTO.getLastName().trim().isEmpty())
+      this.lastName = userUpdateRequestDTO.getLastName().trim();
 
-    if (userRegistrationRequestDTO.getEmail() != null && !userRegistrationRequestDTO.getEmail().trim().isEmpty())
-      this.email = userRegistrationRequestDTO.getEmail().trim();
+    if (userUpdateRequestDTO.getEmail() != null && !userUpdateRequestDTO.getEmail().trim().isEmpty())
+      this.email = userUpdateRequestDTO.getEmail().trim();
 
-    if (userRegistrationRequestDTO.getPassword() != null && !userRegistrationRequestDTO.getPassword().trim().isEmpty())
-      this.password = passwordEncoder.encode(userRegistrationRequestDTO.getPassword());
+    if (userUpdateRequestDTO.getPassword() != null && !userUpdateRequestDTO.getPassword().trim().isEmpty())
+      this.password = passwordEncoder.encode(userUpdateRequestDTO.getPassword());
 
-    if (userRegistrationRequestDTO.getBirthDate() != null)
-      this.birthDate = userRegistrationRequestDTO.getBirthDate();
+    if (userUpdateRequestDTO.getBirthDate() != null)
+      this.birthDate = userUpdateRequestDTO.getBirthDate();
 
-    if (userRegistrationRequestDTO.getCountry() != null)
-      this.country = userRegistrationRequestDTO.getCountry().trim();
+    if (userUpdateRequestDTO.getCountry() != null)
+      this.country = userUpdateRequestDTO.getCountry().trim();
 
-    if (userRegistrationRequestDTO.getPostalCode() != null)
-      this.postalCode = userRegistrationRequestDTO.getPostalCode().trim();
+    if (userUpdateRequestDTO.getPostalCode() != null)
+      this.postalCode = userUpdateRequestDTO.getPostalCode().trim();
+
+    this.updatedAt = java.time.Instant.now().getEpochSecond();
+  }
+
+  public void patchOAuthUserFromDto(OAuthUserUpdateRequestDTO oAuthUserUpdateRequestDTO, PasswordEncoder passwordEncoder) {
+    if (oAuthUserUpdateRequestDTO.getFirstName() != null && !oAuthUserUpdateRequestDTO.getFirstName().trim().isEmpty())
+      this.firstName = oAuthUserUpdateRequestDTO.getFirstName().trim();
+
+    if (oAuthUserUpdateRequestDTO.getLastName() != null && !oAuthUserUpdateRequestDTO.getLastName().trim().isEmpty())
+      this.lastName = oAuthUserUpdateRequestDTO.getLastName().trim();
+
+    if (oAuthUserUpdateRequestDTO.getBirthDate() != null)
+      this.birthDate = oAuthUserUpdateRequestDTO.getBirthDate();
+
+    if (oAuthUserUpdateRequestDTO.getCountry() != null)
+      this.country = oAuthUserUpdateRequestDTO.getCountry().trim();
+
+    if (oAuthUserUpdateRequestDTO.getPostalCode() != null)
+      this.postalCode = oAuthUserUpdateRequestDTO.getPostalCode().trim();
 
     this.updatedAt = java.time.Instant.now().getEpochSecond();
   }

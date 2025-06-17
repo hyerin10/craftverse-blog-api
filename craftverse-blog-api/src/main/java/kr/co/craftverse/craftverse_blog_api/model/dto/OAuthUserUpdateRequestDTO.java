@@ -1,24 +1,25 @@
 package kr.co.craftverse.craftverse_blog_api.model.dto;
 
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@Builder
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponseDTO {
-  private Long id;
+public class OAuthUserUpdateRequestDTO {
+  @Size(min = 1, max = 50, message = "First name must be between 1 and 50 characters")
   private String firstName;
+
+  @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
   private String lastName;
-  private String email;
+
   private Long birthDate;
+
   private String country;
+
   private String postalCode;
-  private Long createdAt;
-  private Long updatedAt;
-  private Boolean emailVerified;
-  private String oauthProvider;
 }
