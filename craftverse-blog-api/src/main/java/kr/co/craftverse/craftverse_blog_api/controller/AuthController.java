@@ -14,8 +14,10 @@ import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedEx
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.GoogleLoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.OAuthUserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.UserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyEmailDTO;
 import kr.co.craftverse.craftverse_blog_api.service.EmailVerificationService;
 import kr.co.craftverse.craftverse_blog_api.service.OAuth2Service;
@@ -69,7 +71,7 @@ public class AuthController {
    */
   @PatchMapping("/user")
   public RestResult<Map<String, Object>> patchUser(
-      @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO, HttpServletRequest request) {
+      @RequestBody UserUpdateRequestDTO userUpdateRequestDTO, HttpServletRequest request) {
 
     Map<String, Object> data = new LinkedHashMap<>();
 
@@ -80,7 +82,30 @@ public class AuthController {
     Long userId = jwtTokenProvider.getUserId(token);
 
     // 부분 업데이트 처리
-    UserResponseDTO updatedUser = userService.patchUser(userId, userRegistrationRequestDTO);
+    UserResponseDTO updatedUser = userService.patchUser(userId, userUpdateRequestDTO);
+
+    data.put("user", updatedUser);
+
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 사용자 정보 부분 수정 API (PATCH)
+   */
+  @PatchMapping("/user/oauth")
+  public RestResult<Map<String, Object>> patchUser(
+      @RequestBody OAuthUserUpdateRequestDTO oAuthUserUpdateRequestDTO, HttpServletRequest request) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    String token = jwtTokenProvider.resolveToken(request);
+    if (token == null || !jwtTokenProvider.validateToken(token))
+      throw new UnauthorizedException();
+
+    Long userId = jwtTokenProvider.getUserId(token);
+
+    // 부분 업데이트 처리
+    UserResponseDTO updatedUser = userService.patchUser(userId, oAuthUserUpdateRequestDTO);
 
     data.put("user", updatedUser);
 

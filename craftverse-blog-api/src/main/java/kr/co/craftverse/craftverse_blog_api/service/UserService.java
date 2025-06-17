@@ -8,8 +8,10 @@ import kr.co.craftverse.craftverse_blog_api.exception.DuplicateResourceException
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.OAuthUserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.UserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.User;
 import kr.co.craftverse.craftverse_blog_api.repository.UserRepository;
 import kr.co.craftverse.craftverse_blog_api.service.messaging.EmailProducer;
@@ -45,11 +47,12 @@ public class UserService {
         .postalCode(user.getPostalCode())
         .emailVerified(user.isEmailVerified())
         .createdAt(user.getCreatedAt())
+        .oauthProvider(user.getOauthProvider())
         .build();
   }
 
   @Transactional
-  public UserResponseDTO patchUser(Long userId, UserRegistrationRequestDTO updateRequest) {
+  public UserResponseDTO patchUser(Long userId, UserUpdateRequestDTO updateRequest) {
     User user = userRepository.findById(userId)
         .orElseThrow(NotFoundException::new);
 
@@ -62,7 +65,7 @@ public class UserService {
     }
 
     // 엔티티의 patch 메서드를 사용하여 업데이트
-    user.patchFromDto(updateRequest, passwordEncoder);
+    user.patchUserFromDto(updateRequest, passwordEncoder);
 
     User savedUser = userRepository.save(user);
     return UserResponseDTO.builder()
@@ -70,6 +73,28 @@ public class UserService {
         .firstName(savedUser.getFirstName())
         .lastName(savedUser.getLastName())
         .email(savedUser.getEmail())
+        .birthDate(savedUser.getBirthDate() != null ? savedUser.getBirthDate() : null)
+        .country(savedUser.getCountry())
+        .postalCode(savedUser.getPostalCode())
+        .createdAt(savedUser.getCreatedAt())
+        .updatedAt(savedUser.getUpdatedAt())
+        .emailVerified(savedUser.getEmailVerified())
+        .build();
+  }
+
+  @Transactional
+  public UserResponseDTO patchUser(Long userId, OAuthUserUpdateRequestDTO oAuthUserUpdateRequestDTO) {
+    User user = userRepository.findById(userId)
+        .orElseThrow(NotFoundException::new);
+
+    // 엔티티의 patch 메서드를 사용하여 업데이트
+    user.patchOAuthUserFromDto(oAuthUserUpdateRequestDTO, passwordEncoder);
+
+    User savedUser = userRepository.save(user);
+    return UserResponseDTO.builder()
+        .id(savedUser.getId())
+        .firstName(savedUser.getFirstName())
+        .lastName(savedUser.getLastName())
         .birthDate(savedUser.getBirthDate() != null ? savedUser.getBirthDate() : null)
         .country(savedUser.getCountry())
         .postalCode(savedUser.getPostalCode())
