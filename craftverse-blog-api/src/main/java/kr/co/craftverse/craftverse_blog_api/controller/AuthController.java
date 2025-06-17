@@ -116,7 +116,7 @@ public class AuthController {
   /**
    * 일반 회원가입
    */
-  @PostMapping("/register")
+  @PostMapping("/user")
   public RestResult<Map<String, Object>> registerUser(
       @Valid @RequestBody UserRegistrationRequestDTO userRegistrationRequestDTO) {
     Map<String, Object> data = new LinkedHashMap<>();
