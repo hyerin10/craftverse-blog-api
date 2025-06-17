@@ -14,6 +14,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 @Configuration
 @EnableWebSecurity
@@ -31,12 +32,16 @@ public class SecurityConfig {
     http
         .cors(Customizer.withDefaults())
         .csrf(csrf -> csrf
-            .ignoringRequestMatchers("/auth/**") // API 경로는 CSRF 제외
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
         )
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/register", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/user", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
+<<<<<<< HEAD
+            .requestMatchers("/auth/user", "/auth/user/oauth", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
+=======
+            .requestMatchers("/auth/register", "/auth/csrf", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/user", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
+>>>>>>> db1c5f4 (feature: csrf 토큰 발급 엔드포인트 추가)
             .requestMatchers("/article/*/views").permitAll()
             .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles").permitAll()
