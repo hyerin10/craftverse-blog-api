@@ -115,4 +115,29 @@ public class ArticleService {
 
     return article.getViewCount();
   }
+
+  public List<ArticleDTO> getAllArticles() {
+    List<Article> articles = articleRepository.findAll();
+
+    if (articles.isEmpty())
+      throw new NotFoundException();
+
+    List<ArticleDTO> articleDTOs = articles.stream()
+        .map(article -> ArticleDTO.builder()
+            .id(article.getId())
+            .title(article.getTitle())
+            .content(article.getContent())
+            .category(article.getCategory())
+            .language(article.getLanguage())
+            .isPremium(article.getIsPremium())
+            .createdAt(article.getCreatedAt())
+            .updatedAt(article.getUpdatedAt())
+            .viewCount(article.getViewCount())
+            .slug(article.getSlug())
+            .metaDescription(article.getMetaDescription())
+            .build())
+        .collect(Collectors.toList());
+
+    return articleDTOs;
+  }
 }
