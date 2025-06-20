@@ -15,12 +15,15 @@ import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.GoogleLoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.LoginRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.OAuthUserUpdateRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.ResetPasswordRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserRegistrationRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.UserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyEmailDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyPasswordResetDTO;
 import kr.co.craftverse.craftverse_blog_api.service.EmailVerificationService;
 import kr.co.craftverse.craftverse_blog_api.service.OAuth2Service;
+import kr.co.craftverse.craftverse_blog_api.service.PasswordResetService;
 import kr.co.craftverse.craftverse_blog_api.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,6 +51,7 @@ public class AuthController {
   private final OAuth2Service oAuth2Service;
   private final EmailVerificationService emailVerificationService;
   private final JwtTokenProvider jwtTokenProvider;
+  private final PasswordResetService passwordResetService;
 
   @GetMapping("/csrf")
   public RestResult<Map<String, String>> getCsrfToken(CsrfToken token) {
@@ -315,5 +319,54 @@ public class AuthController {
     if (state != null && state.startsWith(STATE_PREFIX_ACTION + ACTION_SIGNUP))
       return ACTION_SIGNUP;
     return ACTION_LOGIN;
+  }
+
+  // ========== 비밀번호 재설정 ==========
+
+  /**
+   * 비밀번호 재설정 인증 코드 발송
+   */
+  @PostMapping("/password-reset/send-code")
+  public RestResult<Map<String, Object>> sendPasswordResetCode(
+      @RequestParam("email") String email) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    passwordResetService.sendPasswordResetCode(email);
+
+    data.put("message", "비밀번호 재설정 인증 코드가 발송되었습니다.");
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 비밀번호 재설정 인증 코드 검증
+   */
+  @PostMapping("/password-reset/verify-code")
+  public RestResult<Map<String, Object>> verifyPasswordResetCode(
+      @Valid @RequestBody VerifyPasswordResetDTO verifyPasswordResetDTO) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    boolean verified = passwordResetService.verifyPasswordResetCode(verifyPasswordResetDTO);
+
+    data.put("verified", verified);
+    data.put("message", "인증 코드가 확인되었습니다.");
+    return new RestResult<>(data);
+  }
+
+  /**
+   * 비밀번호 재설정 완료 (검증된 코드로 새 비밀번호 설정)
+   */
+  @PostMapping("/password-reset/reset")
+  public RestResult<Map<String, Object>> resetPassword(
+      @Valid @RequestBody ResetPasswordRequestDTO resetPasswordRequestDTO) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    // 비밀번호 재설정 처리
+    passwordResetService.resetPassword(resetPasswordRequestDTO);
+
+    data.put("message", "비밀번호가 성공적으로 변경되었습니다.");
+    return new RestResult<>(data);
   }
 }

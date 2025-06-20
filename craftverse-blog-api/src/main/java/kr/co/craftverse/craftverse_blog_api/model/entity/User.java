@@ -168,5 +168,12 @@ public class User {
 
     this.updatedAt = java.time.Instant.now().getEpochSecond();
   }
-}
 
+  /**
+   * 비밀번호 업데이트
+   */
+  public void updatePassword(String encodedPassword) {
+    this.password = encodedPassword;
+    this.updatedAt = java.time.Instant.now().getEpochSecond();
+  }
+}

@@ -74,7 +74,7 @@ class UserServiceTest {
       assertThat(result.getFirstName()).isEqualTo("John");
       assertThat(result.getLastName()).isEqualTo("Doe");
 
-      verify(emailProducer, times(1)).sendVerificationEmail(anyString());
+      verify(emailProducer, times(1)).sendVerificationEmail(anyString(), anyString());
       verify(userRepository, times(1)).save(any(User.class));
     }
 
