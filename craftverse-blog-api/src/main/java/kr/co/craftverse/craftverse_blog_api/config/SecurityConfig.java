@@ -37,7 +37,7 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/auth/csrf", "/auth/user", "/auth/user/oauth", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
+            .requestMatchers("/sitemap.xml", "/auth/csrf", "/auth/user", "/auth/user/oauth", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
             .requestMatchers("/auth/password-reset/reset", "/auth/password-reset/verify-code", "/auth/password-reset/send-code").permitAll()
             .requestMatchers("/article/*/views").permitAll()
             .requestMatchers("/article/**").permitAll()
