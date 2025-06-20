@@ -29,6 +29,7 @@ public class UserService {
   private final EmailProducer emailProducer;
   private final Logger logger;
   private final JwtTokenProvider jwtTokenProvider;
+  private final EmailVerificationService emailVerificationService;
 
   /**
    * 현재 사용자 정보 조회
@@ -128,8 +129,8 @@ public class UserService {
 
     User savedUser = userRepository.save(user);
 
-    // 이메일 인증 코드 발송 요청
-    emailProducer.sendVerificationEmail(savedUser.getEmail());
+    // 이메일 인증 서비스 사용
+    emailVerificationService.sendEmailVerificationCode(savedUser.getEmail());
 
     logger.info("[UserService] 회원가입 완료 및 인증 이메일 발송 요청: {}", savedUser.getEmail());
 
@@ -155,8 +156,8 @@ public class UserService {
       return;
     }
 
-    // 이메일 인증 코드 재발송
-    emailProducer.sendVerificationEmail(email);
+    // 이메일 인증 서비스 사용
+    emailVerificationService.sendEmailVerificationCode(email);
     logger.info("[UserService] 인증 이메일 재발송: {}", email);
   }
 

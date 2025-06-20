@@ -37,11 +37,8 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-<<<<<<< HEAD
-            .requestMatchers("/auth/user", "/auth/user/oauth", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
-=======
-            .requestMatchers("/auth/register", "/auth/csrf", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/user", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
->>>>>>> db1c5f4 (feature: csrf 토큰 발급 엔드포인트 추가)
+            .requestMatchers("/auth/csrf", "/auth/user", "/auth/user/oauth", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
+            .requestMatchers("/auth/password-reset/reset", "/auth/password-reset/verify-code", "/auth/password-reset/send-code").permitAll()
             .requestMatchers("/article/*/views").permitAll()
             .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles").permitAll()

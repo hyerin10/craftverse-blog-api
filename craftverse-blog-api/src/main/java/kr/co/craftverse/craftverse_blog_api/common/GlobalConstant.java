@@ -9,4 +9,5 @@ public class GlobalConstant {
   public static final String STATE_PREFIX_ACTION = "action=";
   public static final String ACTION_LOGIN = "login";
   public static final String ACTION_SIGNUP = "signup";
+  public static final String PASSWORD_RESET_PREFIX = "password_reset:";
 }
