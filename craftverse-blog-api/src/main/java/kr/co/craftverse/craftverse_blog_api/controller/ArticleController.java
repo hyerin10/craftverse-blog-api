@@ -39,9 +39,11 @@ public class ArticleController {
   }
 
   @GetMapping("/article/{id}")
-  public RestResult<Map<String, Object>> getById(@PathVariable @Valid @Positive long id) {
+  public RestResult<Map<String, Object>> getById(
+      @PathVariable @Valid @Positive long id,
+      HttpServletRequest request) { // HttpServletRequest 추가
     Map<String, Object> data = new LinkedHashMap<>();
-    data.put("article", articleService.getById(id));
+    data.put("article", articleService.getById(id, request)); // request 전달
     return new RestResult<>(data);
   }
 
