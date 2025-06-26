@@ -1,6 +1,6 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
-import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.GOGGLE_OAUTH_BASE_URL;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -66,17 +66,17 @@ public class OAuth2Service {
    * @param action "login" 또는 "signup"
    */
   public String getGoogleAuthUrl(String action) {
-     // state 파라미터에 action 정보를 포함
-    String state = "action=" + action;
+    // state 파라미터에 action 정보를 포함
+    String state = STATE_PREFIX_ACTION + action;
 
     return UriComponentsBuilder.fromHttpUrl(GOGGLE_OAUTH_BASE_URL)
-        .queryParam("client_id", googleClientId)
-        .queryParam("redirect_uri", redirectUri)
-        .queryParam("response_type", "code")
-        .queryParam("scope", "profile email")
-        .queryParam("access_type", "offline")  // 리프레시 토큰을 위해 필요
-        .queryParam("prompt", "consent")       // 매번 동의 화면 표시
-        .queryParam("state", state)            // action 정보 전달
+        .queryParam(OAUTH_PARAM_CLIENT_ID, googleClientId)
+        .queryParam(OAUTH_PARAM_REDIRECT_URI, redirectUri)
+        .queryParam(OAUTH_PARAM_RESPONSE_TYPE, OAUTH_RESPONSE_TYPE_CODE)
+        .queryParam(OAUTH_PARAM_SCOPE, OAUTH_SCOPE_PROFILE_EMAIL)
+        .queryParam(OAUTH_PARAM_ACCESS_TYPE, OAUTH_ACCESS_TYPE_OFFLINE)  // 리프레시 토큰을 위해 필요
+        .queryParam(OAUTH_PARAM_PROMPT, OAUTH_PROMPT_CONSENT)       // 매번 동의 화면 표시
+        .queryParam(OAUTH_PARAM_STATE, state)            // action 정보 전달
         .toUriString();
   }
 
@@ -88,13 +88,13 @@ public class OAuth2Service {
   public String processGoogleCallback(String code, String action, HttpServletRequest request, HttpServletResponse response) throws Exception {
     // 구글에서 액세스 토큰 얻기
     Map<String, Object> tokenResponse = getGoogleTokens(code);
-    String accessToken = (String) tokenResponse.get("access_token");
-    String refreshToken = (String) tokenResponse.get("refresh_token");
-    Long expiresIn = ((Integer) tokenResponse.get("expires_in")).longValue();
+    String accessToken = (String) tokenResponse.get(OAUTH_RESPONSE_ACCESS_TOKEN);
+    String refreshToken = (String) tokenResponse.get(OAUTH_RESPONSE_REFRESH_TOKEN);
+    Long expiresIn = ((Integer) tokenResponse.get(OAUTH_RESPONSE_EXPIRES_IN)).longValue();
 
     // 구글 사용자 정보 얻기
     Map<String, Object> userInfo = getGoogleUserInfo(accessToken);
-    String email = (String) userInfo.get("email");
+    String email = (String) userInfo.get(USER_INFO_EMAIL);
 
     // 기존 사용자 확인
     Optional<User> existingUser = userRepository.findByEmail(email);
@@ -102,31 +102,31 @@ public class OAuth2Service {
     User user;
     String resultAction;
 
-    if ("signup".equals(action)) {
+    if (ACTION_SIGNUP.equals(action)) {
       // 회원가입 시도
       if (existingUser.isPresent()) {
         // 이미 존재하는 사용자 - 로그인으로 처리하되 알림
         user = existingUser.get();
-        user.updateOAuthInfo("google", (String) userInfo.get("sub"), (String) userInfo.get("picture"));
+        user.updateOAuthInfo(OAUTH_PROVIDER_GOOGLE, (String) userInfo.get(USER_INFO_SUB), (String) userInfo.get(USER_INFO_PICTURE));
         user = userRepository.save(user);
-        resultAction = "login_existing";
+        resultAction = OAUTH_RESULT_LOGIN_EXISTING;
       } else {
         // 새 사용자 생성 (회원가입)
         user = createNewUser(userInfo, accessToken, refreshToken, expiresIn);
-        resultAction = "signup_success";
+        resultAction = OAUTH_RESULT_SIGNUP_SUCCESS;
       }
     } else {
       // 로그인 시도
       if (existingUser.isPresent()) {
         // 기존 사용자 로그인
         user = existingUser.get();
-        user.updateOAuthInfo("google", (String) userInfo.get("sub"), (String) userInfo.get("picture"));
+        user.updateOAuthInfo(OAUTH_PROVIDER_GOOGLE, (String) userInfo.get(USER_INFO_SUB), (String) userInfo.get(USER_INFO_PICTURE));
         user = userRepository.save(user);
-        resultAction = "login_success";
+        resultAction = OAUTH_RESULT_LOGIN_SUCCESS;
       } else {
         // 사용자가 없음 - 회원가입으로 처리
         user = createNewUser(userInfo, accessToken, refreshToken, expiresIn);
-        resultAction = "signup_auto";
+        resultAction = OAUTH_RESULT_SIGNUP_AUTO;
       }
     }
 
@@ -138,10 +138,10 @@ public class OAuth2Service {
 
     // 리다이렉트 URL 생성
     String redirectUrl = UriComponentsBuilder.fromUriString(frontendRedirectUri)
-        .queryParam("login", "success")
-        .queryParam("user_id", user.getId())
-        .queryParam("action", resultAction)
-        .queryParam("token", jwtToken)
+        .queryParam(QUERY_PARAM_LOGIN, QUERY_PARAM_SUCCESS)
+        .queryParam(QUERY_PARAM_USER_ID, user.getId())
+        .queryParam(QUERY_PARAM_ACTION, resultAction)
+        .queryParam(QUERY_PARAM_TOKEN, jwtToken)
         .toUriString();
 
     System.out.println("🔧 리다이렉트 URL: " + redirectUrl);
@@ -154,12 +154,12 @@ public class OAuth2Service {
    */
   @Transactional
   public User createNewUser(Map<String, Object> userInfo, String accessToken, String refreshToken, Long expiresIn) {
-    String email = (String) userInfo.get("email");
-    String sub = (String) userInfo.get("sub");
-    String name = (String) userInfo.get("name");
-    String givenName = (String) userInfo.get("given_name");
-    String familyName = (String) userInfo.get("family_name");
-    String picture = (String) userInfo.get("picture");
+    String email = (String) userInfo.get(USER_INFO_EMAIL);
+    String sub = (String) userInfo.get(USER_INFO_SUB);
+    String name = (String) userInfo.get(USER_INFO_NAME);
+    String givenName = (String) userInfo.get(USER_INFO_GIVEN_NAME);
+    String familyName = (String) userInfo.get(USER_INFO_FAMILY_NAME);
+    String picture = (String) userInfo.get(USER_INFO_PICTURE);
 
     long currentTime = Instant.now().getEpochSecond();
 
@@ -168,7 +168,7 @@ public class OAuth2Service {
         .firstName(givenName != null ? givenName : name)
         .lastName(familyName)
         .emailVerified(true)
-        .oauthProvider("google")
+        .oauthProvider(OAUTH_PROVIDER_GOOGLE)
         .oauthId(sub)
         .profilePictureUrl(picture)
         .createdAt(currentTime)
@@ -183,7 +183,7 @@ public class OAuth2Service {
     // Redis에 토큰 저장
     tokenRepository.saveAccessToken(user.getId(), accessToken, expiresIn);
     if (refreshToken != null)
-      tokenRepository.saveRefreshToken(user.getId(), refreshToken, 30 * 24 * 60 * 60); // 리프레시 토큰은 (30일)
+      tokenRepository.saveRefreshToken(user.getId(), refreshToken, REFRESH_TOKEN_EXPIRY_SECONDS); // 리프레시 토큰은 (30일)
 
     return user;
   }
@@ -193,20 +193,20 @@ public class OAuth2Service {
    */
   private void setCookies(HttpServletResponse response, String jwtToken) {
     // 방법 1: 기본 쿠키
-    Cookie authCookie = new Cookie("auth_token", jwtToken);
-    authCookie.setPath("/");
+    Cookie authCookie = new Cookie(COOKIE_AUTH_TOKEN, jwtToken);
+    authCookie.setPath(COOKIE_PATH_ROOT);
     authCookie.setHttpOnly(true);
     authCookie.setMaxAge((int) (tokenExpirationMs / 1000));
     response.addCookie(authCookie);
 
     // 방법 2: ResponseCookie로 직접 헤더 설정
     response.addHeader("Set-Cookie",
-        String.format("auth_token=%s; Path=/; HttpOnly; Max-Age=%d; SameSite=Lax",
-            jwtToken, (int) (tokenExpirationMs / 1000)));
+        String.format("%s=%s; Path=%s; HttpOnly; Max-Age=%d; SameSite=%s",
+            COOKIE_AUTH_TOKEN, jwtToken, COOKIE_PATH_ROOT, (int) (tokenExpirationMs / 1000), COOKIE_SAME_SITE_LAX));
 
     // 방법 3: 일반 쿠키로도 설정 (테스트용)
-    Cookie testCookie = new Cookie("test_auth_token", jwtToken);
-    testCookie.setPath("/");
+    Cookie testCookie = new Cookie(COOKIE_TEST_AUTH_TOKEN, jwtToken);
+    testCookie.setPath(COOKIE_PATH_ROOT);
     testCookie.setMaxAge((int) (tokenExpirationMs / 1000));
     response.addCookie(testCookie);
 
@@ -217,22 +217,20 @@ public class OAuth2Service {
    * 구글 액세스 토큰 및 리프레시 토큰을 얻습니다.
    */
   private Map<String, Object> getGoogleTokens(String code) {
-    String tokenUrl = "https://oauth2.googleapis.com/token";
-
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
     MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-    body.add("code", code);
-    body.add("client_id", googleClientId);
-    body.add("client_secret", googleClientSecret);
-    body.add("redirect_uri", redirectUri);
-    body.add("grant_type", "authorization_code");
+    body.add(OAUTH_PARAM_CODE, code);
+    body.add(OAUTH_PARAM_CLIENT_ID, googleClientId);
+    body.add(OAUTH_PARAM_CLIENT_SECRET, googleClientSecret);
+    body.add(OAUTH_PARAM_REDIRECT_URI, redirectUri);
+    body.add(OAUTH_PARAM_GRANT_TYPE, GRANT_TYPE_AUTHORIZATION_CODE);
 
     HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
     ResponseEntity<Map> response = restTemplate.exchange(
-        tokenUrl,
+        GOOGLE_TOKEN_URL,
         HttpMethod.POST,
         entity,
         Map.class
@@ -245,15 +243,13 @@ public class OAuth2Service {
    * 구글 사용자 정보를 얻습니다.
    */
   private Map<String, Object> getGoogleUserInfo(String accessToken) {
-    String userInfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
-
     HttpHeaders headers = new HttpHeaders();
     headers.setBearerAuth(accessToken);
 
     HttpEntity<?> entity = new HttpEntity<>(headers);
 
     ResponseEntity<Map> response = restTemplate.exchange(
-        userInfoUrl,
+        GOOGLE_USERINFO_URL,
         HttpMethod.GET,
         entity,
         Map.class
@@ -269,9 +265,9 @@ public class OAuth2Service {
   public Map<String, String> loginWithGoogle(String code) {
     // 구글에서 액세스 토큰 얻기
     Map<String, Object> tokenResponse = getGoogleTokens(code);
-    String accessToken = (String) tokenResponse.get("access_token");
-    String refreshToken = (String) tokenResponse.get("refresh_token");
-    Long expiresIn = ((Integer) tokenResponse.get("expires_in")).longValue();
+    String accessToken = (String) tokenResponse.get(OAUTH_RESPONSE_ACCESS_TOKEN);
+    String refreshToken = (String) tokenResponse.get(OAUTH_RESPONSE_REFRESH_TOKEN);
+    Long expiresIn = ((Integer) tokenResponse.get(OAUTH_RESPONSE_EXPIRES_IN)).longValue();
 
     // 구글 사용자 정보 얻기
     Map<String, Object> userInfo = getGoogleUserInfo(accessToken);
@@ -283,8 +279,8 @@ public class OAuth2Service {
     String jwtToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
 
     Map<String, String> result = new HashMap<>();
-    result.put("accessToken", jwtToken);
-    result.put("refreshToken", refreshToken);
+    result.put(OAUTH_RESPONSE_ACCESS_TOKEN, jwtToken);
+    result.put(OAUTH_RESPONSE_REFRESH_TOKEN, refreshToken);
     try{
       result.put("user", objectMapper.writeValueAsString(user));
     } catch (JsonProcessingException e) {
@@ -303,12 +299,12 @@ public class OAuth2Service {
       String refreshToken,
       Long expiresIn) {
 
-    String email = (String) userInfo.get("email");
-    String sub = (String) userInfo.get("sub");
-    String name = (String) userInfo.get("name");
-    String givenName = (String) userInfo.get("given_name");
-    String familyName = (String) userInfo.get("family_name");
-    String picture = (String) userInfo.get("picture");
+    String email = (String) userInfo.get(USER_INFO_EMAIL);
+    String sub = (String) userInfo.get(USER_INFO_SUB);
+    String name = (String) userInfo.get(USER_INFO_NAME);
+    String givenName = (String) userInfo.get(USER_INFO_GIVEN_NAME);
+    String familyName = (String) userInfo.get(USER_INFO_FAMILY_NAME);
+    String picture = (String) userInfo.get(USER_INFO_PICTURE);
 
     // 이메일로 사용자 찾기
     Optional<User> userOptional = userRepository.findByEmail(email);
@@ -318,7 +314,7 @@ public class OAuth2Service {
     if (userOptional.isPresent()) {
       // 기존 사용자 업데이트
       user = userOptional.get();
-      user.updateOAuthInfo("google", sub, picture);
+      user.updateOAuthInfo(OAUTH_PROVIDER_GOOGLE, sub, picture);
     } else {
       // 새 사용자 생성
       long currentTime = Instant.now().getEpochSecond();
@@ -327,7 +323,7 @@ public class OAuth2Service {
           .firstName(givenName != null ? givenName : name)
           .lastName(familyName)
           .emailVerified(true)
-          .oauthProvider("google")
+          .oauthProvider(OAUTH_PROVIDER_GOOGLE)
           .oauthId(sub)
           .profilePictureUrl(picture)
           .createdAt(currentTime)
@@ -343,7 +339,7 @@ public class OAuth2Service {
     // Redis에 토큰 저장
     tokenRepository.saveAccessToken(user.getId(), accessToken, expiresIn);
     if (refreshToken != null)
-      tokenRepository.saveRefreshToken(user.getId(), refreshToken, 30 * 24 * 60 * 60); // 리프레시 토큰 (30일)
+      tokenRepository.saveRefreshToken(user.getId(), refreshToken, REFRESH_TOKEN_EXPIRY_SECONDS); // 리프레시 토큰 (30일)
 
     return user;
   }
@@ -352,42 +348,40 @@ public class OAuth2Service {
    * 리프레시 토큰을 사용하여 액세스 토큰을 갱신합니다.
    */
   public String refreshAccessToken(Long userId, String email, String refreshToken) {
-      // Redis에서 리프레시 토큰 확인
-      String storedRefreshToken = tokenRepository.getRefreshToken(userId);
+    // Redis에서 리프레시 토큰 확인
+    String storedRefreshToken = tokenRepository.getRefreshToken(userId);
 
-      if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken))
-        throw new UnauthorizedException();
+    if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken))
+      throw new UnauthorizedException();
 
-      // 구글 API로 액세스 토큰 갱신
-      String tokenUrl = "https://oauth2.googleapis.com/token";
+    // 구글 API로 액세스 토큰 갱신
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
-      HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+    MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
+    body.add(OAUTH_PARAM_CLIENT_ID, googleClientId);
+    body.add(OAUTH_PARAM_CLIENT_SECRET, googleClientSecret);
+    body.add(OAUTH_PARAM_REFRESH_TOKEN, refreshToken);
+    body.add(OAUTH_PARAM_GRANT_TYPE, GRANT_TYPE_REFRESH_TOKEN);
 
-      MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-      body.add("client_id", googleClientId);
-      body.add("client_secret", googleClientSecret);
-      body.add("refresh_token", refreshToken);
-      body.add("grant_type", "refresh_token");
+    HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
 
-      HttpEntity<MultiValueMap<String, String>> entity = new HttpEntity<>(body, headers);
+    ResponseEntity<JsonNode> response = restTemplate.exchange(
+        GOOGLE_TOKEN_URL,
+        HttpMethod.POST,
+        entity,
+        JsonNode.class
+    );
 
-      ResponseEntity<JsonNode> response = restTemplate.exchange(
-          tokenUrl,
-          HttpMethod.POST,
-          entity,
-          JsonNode.class
-      );
+    JsonNode tokenResponse = response.getBody();
+    String newAccessToken = tokenResponse.get(OAUTH_RESPONSE_ACCESS_TOKEN).asText();
+    int expiresIn = tokenResponse.get(OAUTH_RESPONSE_EXPIRES_IN).asInt();
 
-      JsonNode tokenResponse = response.getBody();
-      String newAccessToken = tokenResponse.get("access_token").asText();
-      int expiresIn = tokenResponse.get("expires_in").asInt();
+    // Redis에 새 액세스 토큰 저장
+    tokenRepository.saveAccessToken(userId, newAccessToken, expiresIn);
 
-      // Redis에 새 액세스 토큰 저장
-      tokenRepository.saveAccessToken(userId, newAccessToken, expiresIn);
-
-      // JWT 토큰 새로 생성
-      return jwtTokenProvider.createAccessToken(userId, email);
+    // JWT 토큰 새로 생성
+    return jwtTokenProvider.createAccessToken(userId, email);
   }
 
   @Transactional

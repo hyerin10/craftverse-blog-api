@@ -1,5 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.controller;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.*;
+
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -20,45 +22,45 @@ import org.springframework.web.bind.annotation.RestController;
 public class SitemapController {
 
   private final ArticleService articleService;
-  private static final String BASE_URL = "https://craftverse.co.kr"; // 실제 도메인으로 변경
 
   @GetMapping(value = "/sitemap.xml", produces = MediaType.APPLICATION_XML_VALUE)
   public void getSitemap(
-      @RequestParam(name = "language", defaultValue = "all") String language,
+      @RequestParam(name = "language", defaultValue = LANGUAGE_ALL) String language,
       HttpServletResponse response) throws IOException {
 
     response.setContentType("application/xml");
     response.setCharacterEncoding("UTF-8");
 
     StringBuilder sitemap = new StringBuilder();
-    sitemap.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-    sitemap.append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+    sitemap.append(SITEMAP_XML_HEADER);
+    sitemap.append(SITEMAP_URLSET_OPEN);
 
     // 홈페이지
-    addUrlToSitemap(sitemap, BASE_URL, "1.0", "daily");
+    addUrlToSitemap(sitemap, BASE_URL, PRIORITY_HOME, CHANGEFREQ_DAILY);
 
     // 언어별 홈페이지
-    if ("all".equals(language) || "ko".equals(language)) {
-      addUrlToSitemap(sitemap, BASE_URL + "/ko", "0.9", "daily");
+    if (LANGUAGE_ALL.equals(language) || LANGUAGE_KO.equals(language)) {
+      addUrlToSitemap(sitemap, BASE_URL + LANGUAGE_PATH_KO, PRIORITY_LANGUAGE_HOME, CHANGEFREQ_DAILY);
     }
-    if ("all".equals(language) || "en".equals(language)) {
-      addUrlToSitemap(sitemap, BASE_URL + "/en", "0.9", "daily");
+    if (LANGUAGE_ALL.equals(language) || LANGUAGE_EN.equals(language)) {
+      addUrlToSitemap(sitemap, BASE_URL + LANGUAGE_PATH_EN, PRIORITY_LANGUAGE_HOME, CHANGEFREQ_DAILY);
     }
 
     // 카테고리 페이지들
-    String[] categories = {"overoll", "tech", "series"};
-    for (String category : categories) {
-      if ("all".equals(language) || "ko".equals(language)) {
-        addUrlToSitemap(sitemap, BASE_URL + "/ko/category/" + category, "0.8", "weekly");
+    for (String category : CATEGORIES) {
+      if (LANGUAGE_ALL.equals(language) || LANGUAGE_KO.equals(language)) {
+        addUrlToSitemap(sitemap, BASE_URL + LANGUAGE_PATH_KO + URL_CATEGORY_PATTERN + category,
+            PRIORITY_CATEGORY, CHANGEFREQ_WEEKLY);
       }
-      if ("all".equals(language) || "en".equals(language)) {
-        addUrlToSitemap(sitemap, BASE_URL + "/en/category/" + category, "0.8", "weekly");
+      if (LANGUAGE_ALL.equals(language) || LANGUAGE_EN.equals(language)) {
+        addUrlToSitemap(sitemap, BASE_URL + LANGUAGE_PATH_EN + URL_CATEGORY_PATTERN + category,
+            PRIORITY_CATEGORY, CHANGEFREQ_WEEKLY);
       }
     }
 
     // 아티클들
     List<ArticleDTO> articles;
-    if ("all".equals(language)) {
+    if (LANGUAGE_ALL.equals(language)) {
       articles = articleService.getAllArticles(); // 모든 언어의 아티클
     } else {
       articles = articleService.getByLanguage(language);
@@ -74,12 +76,12 @@ public class SitemapController {
       if (lastmod != null) {
         sitemap.append("    <lastmod>").append(lastmod).append("</lastmod>\n");
       }
-      sitemap.append("    <changefreq>monthly</changefreq>\n");
-      sitemap.append("    <priority>0.7</priority>\n");
+      sitemap.append("    <changefreq>").append(CHANGEFREQ_MONTHLY).append("</changefreq>\n");
+      sitemap.append("    <priority>").append(PRIORITY_ARTICLE).append("</priority>\n");
       sitemap.append("  </url>\n");
     }
 
-    sitemap.append("</urlset>");
+    sitemap.append(SITEMAP_URLSET_CLOSE);
 
     response.getWriter().write(sitemap.toString());
   }
@@ -93,19 +95,19 @@ public class SitemapController {
   }
 
   private String buildArticleUrl(ArticleDTO article) {
-    String languagePath = "ko".equals(article.getLanguage()) ? "/ko" : "/en";
+    String languagePath = LANGUAGE_KO.equals(article.getLanguage()) ? LANGUAGE_PATH_KO : LANGUAGE_PATH_EN;
 
     // slug가 있으면 slug 사용, 없으면 ID 사용
     if (article.getSlug() != null && !article.getSlug().trim().isEmpty()) {
       try {
         String encodedSlug = URLEncoder.encode(article.getSlug(), StandardCharsets.UTF_8);
-        return BASE_URL + languagePath + "/article/" + encodedSlug;
+        return BASE_URL + languagePath + URL_ARTICLE_PATTERN + encodedSlug;
       } catch (Exception e) {
         // 인코딩 실패시 ID 사용
-        return BASE_URL + languagePath + "/article/" + article.getId();
+        return BASE_URL + languagePath + URL_ARTICLE_PATTERN + article.getId();
       }
     } else {
-      return BASE_URL + languagePath + "/article/" + article.getId();
+      return BASE_URL + languagePath + URL_ARTICLE_PATTERN + article.getId();
     }
   }
 
