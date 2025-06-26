@@ -22,4 +22,12 @@ public class PaymentRequestDTO {
 
   private String customerEmail;
   private String customerMobilePhone;
+
+  // 아티클 구매를 위한 필드 추가
+  @NotNull(message = "아티클 ID는 필수입니다")
+  @Positive(message = "아티클 ID는 0보다 커야 합니다")
+  private Long articleId;
+
+  @NotBlank(message = "언어 설정은 필수입니다")
+  private String language;
 }
