@@ -2,6 +2,7 @@ package kr.co.craftverse.craftverse_blog_api.controller;
 
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ACTION_LOGIN;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ACTION_SIGNUP;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.OAUTH_ERROR_ACCESS_DENIED;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.STATE_PREFIX_ACTION;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -252,7 +253,7 @@ public class AuthController {
     Map<String, String> tokenInfo = oAuth2Service.loginWithGoogle(googleLoginRequestDTO.getCode());
 
     // 사용자가 로그인을 거부한 경우
-    if ("access_denied".equals(googleLoginRequestDTO.getError()))
+    if (OAUTH_ERROR_ACCESS_DENIED.equals(googleLoginRequestDTO.getError()))
       throw new UnauthorizedException();
 
     if (googleLoginRequestDTO.getCode() == null || googleLoginRequestDTO.getCode().trim().isEmpty())
