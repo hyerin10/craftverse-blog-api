@@ -2,23 +2,26 @@ package kr.co.craftverse.craftverse_blog_api.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.PaymentCancelRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.PaymentConfirmRequestDTO;
-import kr.co.craftverse.craftverse_blog_api.model.dto.PaymentRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.PaymentResponseDTO;
-import kr.co.craftverse.craftverse_blog_api.model.dto.VirtualAccountRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.security.TossWebhookSecurityValidator;
 import kr.co.craftverse.craftverse_blog_api.service.TossPaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
@@ -29,6 +32,7 @@ public class PaymentController {
 
   private final TossPaymentService tossPaymentService;
   private final JwtTokenProvider jwtTokenProvider;
+  private final TossWebhookSecurityValidator securityValidator;
 
   /**
    * 토큰에서 사용자 ID 추출 (공통 메서드)
@@ -39,44 +43,6 @@ public class PaymentController {
       throw new UnauthorizedException();
     }
     return jwtTokenProvider.getUserId(token);
-  }
-
-  /**
-   * 일반 결제 요청 생성 (카드 결제용)
-   */
-  @PostMapping("/request")
-  public RestResult<Map<String, Object>> createPayment(
-      @Valid @RequestBody PaymentRequestDTO paymentRequestDTO,
-      HttpServletRequest request) {
-
-    Map<String, Object> data = new LinkedHashMap<>();
-    Long userId = getUserIdFromToken(request);
-
-    PaymentResponseDTO payment = tossPaymentService.createPayment(paymentRequestDTO, userId);
-
-    data.put("payment", payment);
-    data.put("message", "결제 요청이 생성되었습니다.");
-
-    return new RestResult<>(data);
-  }
-
-  /**
-   * 가상계좌 발급 요청
-   */
-  @PostMapping("/virtual-account")
-  public RestResult<Map<String, Object>> createVirtualAccount(
-      @Valid @RequestBody VirtualAccountRequestDTO virtualAccountRequestDTO,
-      HttpServletRequest request) {
-
-    Map<String, Object> data = new LinkedHashMap<>();
-    Long userId = getUserIdFromToken(request);
-
-    PaymentResponseDTO payment = tossPaymentService.createVirtualAccount(virtualAccountRequestDTO, userId);
-
-    data.put("payment", payment);
-    data.put("message", "가상계좌가 발급되었습니다.");
-
-    return new RestResult<>(data);
   }
 
   /**
@@ -186,7 +152,7 @@ public class PaymentController {
   }
 
   /**
-   * 결제 상태 확인 (웹훅 처리용 - 인증 없음)
+   * 간단한 웹훅 처리 (개발용)
    */
   @PostMapping("/webhook")
   public RestResult<Map<String, Object>> handleWebhook(@RequestBody Map<String, Object> webhookData) {
@@ -194,25 +160,54 @@ public class PaymentController {
     Map<String, Object> data = new LinkedHashMap<>();
 
     try {
-      // 웹훅 데이터 처리
       String eventType = (String) webhookData.get("eventType");
-      log.info("웹훅 수신: {}", eventType);
+      log.info("웹훅 수신 - eventType: {}", eventType);
+      log.info("웹훅 전체 데이터: {}", webhookData);
 
-      // Payment 상태 업데이트 로직
-      if ("Payment".equals(webhookData.get("data"))) {
+      // 결제 데이터 처리
+      if (webhookData.containsKey("data")) {
         Map<String, Object> paymentData = (Map<String, Object>) webhookData.get("data");
+
         String paymentKey = (String) paymentData.get("paymentKey");
         String status = (String) paymentData.get("status");
+        String orderId = (String) paymentData.get("orderId");
 
-        tossPaymentService.updatePaymentStatus(paymentKey, status);
+        log.info("결제 정보 - paymentKey: {}, status: {}, orderId: {}",
+            paymentKey, status, orderId);
+
+        // 결제 상태 업데이트
+        if (paymentKey != null && status != null) {
+          tossPaymentService.updatePaymentStatus(paymentKey, status);
+
+          // 이벤트별 후처리
+          switch (status) {
+            case "DONE":
+              tossPaymentService.handlePaymentCompleted(paymentKey, orderId);
+              log.info("결제 완료 처리됨 - paymentKey: {}", paymentKey);
+              break;
+            case "CANCELED":
+              tossPaymentService.handlePaymentCanceled(paymentKey, orderId);
+              log.info("결제 취소 처리됨 - paymentKey: {}", paymentKey);
+              break;
+            case "PARTIAL_CANCELED":
+              log.info("부분 취소 처리됨 - paymentKey: {}", paymentKey);
+              break;
+            default:
+              log.info("기타 상태 변경 - paymentKey: {}, status: {}", paymentKey, status);
+          }
+        }
       }
 
       data.put("message", "웹훅 처리 완료");
+      data.put("eventType", eventType);
+      data.put("success", true);
       return new RestResult<>(data);
 
     } catch (Exception e) {
       log.error("웹훅 처리 실패", e);
-      data.put("message", "웹훅 처리 실패");
+      data.put("message", "웹훅 처리 실패: " + e.getMessage());
+      data.put("success", false);
+      data.put("error", e.getMessage());
       return new RestResult<>(data);
     }
   }

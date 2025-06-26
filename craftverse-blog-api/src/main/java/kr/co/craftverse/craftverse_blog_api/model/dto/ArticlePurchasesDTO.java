@@ -1,35 +1,84 @@
 package kr.co.craftverse.craftverse_blog_api.model.dto;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
-import java.math.BigDecimal;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+
+/**
+ * 아티클 구매 정보 DTO (UTC 타임스탬프 사용)
+ */
 @Getter
+@Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class ArticlePurchasesDTO {
-  @NotNull
+
   private Long id;
-  private Long purchaseDate;
+  private Long userId;
+  private Long articleIdKo;
+  private Long articleIdEn;
+  private Long purchaseDate; // UTC timestamp (milliseconds)
   private BigDecimal purchasePrice;
   private String paymentStatus;
-  @NotNull
-  private String title;
-  @NotNull
-  private String content;
-  @Pattern(regexp = "overoll|tech|series")
-  private String category;
-  @Pattern(regexp = "ko|en")
-  private String language;
-  private Boolean isPremium;
-  private Long createdAt;
-  private Long updatedAt;
-  private Integer viewsCount;
-  private String slug;
-  private String metaDescription;
+  private String paymentKey;
+  private String orderId;
+  private String paymentMethod;
+  private Long approvedAt; // UTC timestamp (milliseconds)
+  private Long createdAt; // UTC timestamp (milliseconds)
+  private Long updatedAt; // UTC timestamp (milliseconds)
+
+  // 조인된 아티클 정보 (선택적)
+  private String articleTitle;
+  private String articleDescription;
+
+  // UTC 타임스탬프를 LocalDateTime으로 변환하는 헬퍼 메서드들
+  public LocalDateTime getPurchaseDateAsLocalDateTime() {
+    return this.purchaseDate != null
+        ? LocalDateTime.ofInstant(Instant.ofEpochMilli(this.purchaseDate), ZoneOffset.UTC)
+        : null;
+  }
+
+  public LocalDateTime getApprovedAtAsLocalDateTime() {
+    return this.approvedAt != null
+        ? LocalDateTime.ofInstant(Instant.ofEpochMilli(this.approvedAt), ZoneOffset.UTC)
+        : null;
+  }
+
+  public LocalDateTime getCreatedAtAsLocalDateTime() {
+    return this.createdAt != null
+        ? LocalDateTime.ofInstant(Instant.ofEpochMilli(this.createdAt), ZoneOffset.UTC)
+        : null;
+  }
+
+  public LocalDateTime getUpdatedAtAsLocalDateTime() {
+    return this.updatedAt != null
+        ? LocalDateTime.ofInstant(Instant.ofEpochMilli(this.updatedAt), ZoneOffset.UTC)
+        : null;
+  }
+
+  // 언어별 아티클 ID 조회 메서드
+  public Long getArticleIdByLanguage(String language) {
+    if ("en".equals(language)) {
+      return this.articleIdEn;
+    }
+    return this.articleIdKo; // 기본값은 한국어
+  }
+
+  // 상태 확인 메서드들
+  public boolean isCompleted() {
+    return "completed".equals(this.paymentStatus);
+  }
+
+  public boolean isPending() {
+    return "pending".equals(this.paymentStatus);
+  }
+
+  public boolean isFailed() {
+    return "failed".equals(this.paymentStatus);
+  }
 }

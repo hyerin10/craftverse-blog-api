@@ -3,8 +3,10 @@ package kr.co.craftverse.craftverse_blog_api.service;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
@@ -13,10 +15,11 @@ import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchasesDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
 import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchases;
-import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchaseRepository;
+import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchasesRepository;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -25,13 +28,183 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class ArticleService {
   private final ArticleRepository articleRepository;
-  private final ArticlePurchaseRepository articlePurchaseRepository;
+  private final ArticlePurchasesRepository articlePurchasesRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
 
   private static final String PURCHASE_CACHE_PREFIX = "article_purchase:";
   private static final long CACHE_EXPIRE_HOURS = 24;
   private static final double PREVIEW_CONTENT_RATIO = 0.3;
+
+  /**
+   * 프리미엄 아티클 구매 처리 (가격 필드 사용)
+   */
+  public ArticlePurchasesDTO purchaseArticle(
+      Long userId,
+      Long articleId,
+      String language,
+      String paymentKey,
+      String orderId) throws BadRequestException {
+
+    // 1. 아티클 존재 여부 확인
+    Article article = articleRepository.findById(articleId)
+        .orElseThrow(() -> new NotFoundException());
+
+    // 2. 프리미엄 아티클인지 확인
+    if (!Boolean.TRUE.equals(article.getIsPremium()))
+      throw new BadRequestException();
+
+    // 3. 가격 정보 확인
+    if (article.getPremiumPrice() == null || article.getPremiumPrice().compareTo(BigDecimal.ZERO) <= 0)
+      throw new BadRequestException();
+
+    // 4. 이미 구매한 아티클인지 확인 (중복 구매 방지)
+    Optional<ArticlePurchases> existingPurchase =
+        articlePurchasesRepository.findByUserIdAndArticleIdAndLanguageAndCompleted(
+            userId, articleId, language);
+
+    if (existingPurchase.isPresent()) {
+      // 이미 구매한 경우 기존 정보 반환
+      log.info("이미 구매한 아티클입니다. userId: {}, articleId: {}", userId, articleId);
+      return convertToDTO(existingPurchase.get());
+    }
+
+    // 5. 새로운 구매 기록 생성
+    long currentTimestamp = System.currentTimeMillis();
+
+    ArticlePurchases newPurchase = ArticlePurchases.builder()
+        .userId(userId)
+        .paymentKey(paymentKey)
+        .orderId(orderId)
+        .purchasePrice(article.getPremiumPrice()) // BigDecimal 타입으로 저장
+        .paymentStatus("completed")
+        .paymentMethod("card") // 기본값, 필요시 파라미터로 받기
+        .purchaseDate(currentTimestamp)
+        .approvedAt(currentTimestamp)
+        .createdAt(currentTimestamp)
+        .updatedAt(currentTimestamp)
+        .build();
+
+    // 언어별 아티클 ID 설정
+    newPurchase.setArticleIdByLanguage(language, articleId);
+
+    // 6. 데이터베이스에 저장
+    ArticlePurchases savedPurchase = articlePurchasesRepository.save(newPurchase);
+
+    log.info("프리미엄 아티클 구매 완료. userId: {}, articleId: {}, price: {}, paymentKey: {}",
+        userId, articleId, article.getPremiumPrice(), paymentKey);
+
+    return convertToDTO(savedPurchase);
+  }
+
+  /**
+   * 아티클 DTO 변환 시 프리미엄 정보 포함
+   */
+  private ArticleDTO convertToDTO(Article article, Long userId, String language) {
+    ArticleDTO.ArticleDTOBuilder builder = ArticleDTO.builder()
+        .id(article.getId())
+        .title(article.getTitle())
+        .content(article.getContent())
+        .category(article.getCategory())
+        .language(article.getLanguage())
+        .isPremium(article.getIsPremium())
+        .premiumPrice(article.getPremiumPrice()) // 가격 정보 포함
+        .createdAt(article.getCreatedAt())
+        .updatedAt(article.getUpdatedAt())
+        .viewCount(article.getViewCount())
+        .slug(article.getSlug())
+        .metaDescription(article.getMetaDescription());
+
+    // 프리미엄 아티클인 경우 접근 권한 확인
+    if (Boolean.TRUE.equals(article.getIsPremium()) && userId != null) {
+      boolean hasAccess = hasPremiumAccess(userId, article.getId(), language);
+      builder.hasPremiumAccess(hasAccess);
+
+      // 접근 권한이 없으면 콘텐츠 일부만 제공
+      if (!hasAccess) {
+        String filteredContent = applyContentFilter(article.getContent());
+        builder.content(filteredContent)
+            .isContentFiltered(true)
+            .isFullContentAvailable(false);
+      } else {
+        builder.isFullContentAvailable(true);
+      }
+    } else if (Boolean.TRUE.equals(article.getIsPremium())) {
+      // 비로그인 사용자는 프리미엄 콘텐츠 일부만 제공
+      String filteredContent = applyContentFilter(article.getContent());
+      builder.content(filteredContent)
+          .hasPremiumAccess(false)
+          .isContentFiltered(true)
+          .isFullContentAvailable(false);
+    } else {
+      builder.isFullContentAvailable(true);
+    }
+
+    return builder.build();
+  }
+
+  /**
+   * 프리미엄 콘텐츠 필터링 (30%만 제공)
+   */
+  private String applyContentFilter(String content) {
+    if (content == null || content.isEmpty()) {
+      return content;
+    }
+
+    int previewLength = (int) (content.length() * 0.3); // 30%만 제공
+    String filteredContent = content.substring(0, Math.min(previewLength, content.length()));
+
+    // 마지막에 "..." 추가하여 더 있다는 것을 표시
+    if (previewLength < content.length()) {
+      filteredContent += "...";
+    }
+
+    return filteredContent;
+  }
+
+  /**
+   * 사용자의 프리미엄 아티클 구매 여부 확인
+   */
+  public boolean hasPremiumAccess(Long userId, Long articleId, String language) {
+    if ("en".equals(language)) {
+      return articlePurchasesRepository.existsByUserIdAndArticleIdEnAndCompleted(userId, articleId);
+    } else {
+      return articlePurchasesRepository.existsByUserIdAndArticleIdKoAndCompleted(userId, articleId);
+    }
+  }
+
+  /**
+   * 사용자가 구매한 모든 프리미엄 아티클 조회
+   */
+  public List<ArticlePurchasesDTO> getUserPremiumArticles(Long userId) {
+    List<ArticlePurchases> purchases =
+        articlePurchasesRepository.findByUserIdAndPaymentStatusOrderByPurchaseDateDesc(userId, "completed");
+
+    return purchases.stream()
+        .map(this::convertToDTO)
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Entity를 DTO로 변환
+   */
+  private ArticlePurchasesDTO convertToDTO(ArticlePurchases purchase) {
+    return ArticlePurchasesDTO.builder()
+        .id(purchase.getId())
+        .userId(purchase.getUserId())
+        .articleIdKo(purchase.getArticleIdKo())
+        .articleIdEn(purchase.getArticleIdEn())
+        .purchaseDate(purchase.getPurchaseDate())
+        .purchasePrice(purchase.getPurchasePrice())
+        .paymentStatus(purchase.getPaymentStatus())
+        .paymentKey(purchase.getPaymentKey())
+        .orderId(purchase.getOrderId())
+        .paymentMethod(purchase.getPaymentMethod())
+        .approvedAt(purchase.getApprovedAt())
+        .createdAt(purchase.getCreatedAt())
+        .updatedAt(purchase.getUpdatedAt())
+        .build();
+  }
 
   public ArticleDTO getById(long id, HttpServletRequest request) {
     return getById(id, request, false); // 기본적으로 캐시 사용
@@ -173,7 +346,7 @@ public class ArticleService {
     log.info("Query parameters: userId={}, articleId={}, language={}", userId, articleId, language);
 
     try {
-      List<ArticlePurchases> purchases = articlePurchaseRepository.findByUserId(userId);
+      List<ArticlePurchases> purchases = articlePurchasesRepository.findByUserId(userId);
       log.info("Found {} total purchases for userId: {}", purchases.size(), userId);
 
       // 모든 구매 내역 상세 로깅
@@ -356,7 +529,7 @@ public class ArticleService {
   }
 
   public List<ArticlePurchasesDTO> getPurchasesByLanguage(Long userId, String language) {
-    List<ArticlePurchases> articlePurchases = articlePurchaseRepository.findByUserId(userId);
+    List<ArticlePurchases> articlePurchases = articlePurchasesRepository.findByUserId(userId);
     List<ArticlePurchasesDTO> articlePurchasesDTO = new ArrayList<>();
 
     for(ArticlePurchases articlePurchase: articlePurchases) {
@@ -373,15 +546,8 @@ public class ArticleService {
           .purchaseDate(articlePurchase.getPurchaseDate())
           .purchasePrice(articlePurchase.getPurchasePrice())
           .paymentStatus(articlePurchase.getPaymentStatus())
-          .title(article.getTitle())
-          .content(article.getContent())
-          .category(article.getCategory())
-          .language(article.getLanguage())
           .createdAt(article.getCreatedAt())
           .updatedAt(article.getUpdatedAt())
-          .viewsCount(article.getViewCount())
-          .slug(article.getSlug())
-          .metaDescription(article.getMetaDescription())
           .build();
 
       articlePurchasesDTO.add(articlePurchaseDTO);

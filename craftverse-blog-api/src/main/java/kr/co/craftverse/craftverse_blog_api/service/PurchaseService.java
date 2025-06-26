@@ -1,7 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
 import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchases;
-import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchaseRepository;
+import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchasesRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 @Slf4j
 public class PurchaseService {
-  private final ArticlePurchaseRepository articlePurchaseRepository;
+  private final ArticlePurchasesRepository articlePurchaseRepository;
   private final ArticleService articleService;
 
   @Transactional

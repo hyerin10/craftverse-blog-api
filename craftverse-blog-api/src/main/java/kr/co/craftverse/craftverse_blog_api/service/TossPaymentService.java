@@ -2,14 +2,22 @@ package kr.co.craftverse.craftverse_blog_api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
+import kr.co.craftverse.craftverse_blog_api.exception.InvalidPaymentStatusException;
+import kr.co.craftverse.craftverse_blog_api.exception.PaymentAmountMismatchException;
+import kr.co.craftverse.craftverse_blog_api.exception.PaymentNotFoundException;
+import kr.co.craftverse.craftverse_blog_api.exception.PaymentProcessException;
+import kr.co.craftverse.craftverse_blog_api.exception.TossPaymentException;
 import kr.co.craftverse.craftverse_blog_api.model.dto.*;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Payment;
+import kr.co.craftverse.craftverse_blog_api.model.entity.Payment.PaymentStatus;
 import kr.co.craftverse.craftverse_blog_api.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
@@ -30,6 +38,63 @@ public class TossPaymentService {
 
   @Value("${toss.payments.api-url:https://api.tosspayments.com/v1}")
   private String apiUrl;
+
+  /**
+   * 결제 완료 후처리
+   */
+  @Transactional
+  public void handlePaymentCompleted(String paymentKey, String orderId) {
+    try {
+      log.info("결제 완료 후처리 시작 - paymentKey: {}, orderId: {}", paymentKey, orderId);
+
+      // 1. 결제 정보 조회
+      Payment payment = paymentRepository.findByPaymentKey(paymentKey)
+          .orElseThrow(() -> new RuntimeException("결제 정보를 찾을 수 없습니다: " + paymentKey));
+
+      // 2. 주문 상태 변경 (주문 관리 시스템이 있는 경우)
+      // orderService.updateOrderStatus(orderId, "PAID");
+
+      // 3. 포인트 적립, 쿠폰 발급 등 추가 비즈니스 로직
+      // pointService.earnPoints(payment.getUserId(), payment.getAmount());
+
+      // 4. 결제 완료 알림 발송
+      // notificationService.sendPaymentCompletedNotification(payment.getUserId(), payment);
+
+      log.info("결제 완료 후처리 완료 - paymentKey: {}", paymentKey);
+
+    } catch (Exception e) {
+      log.error("결제 완료 후처리 실패 - paymentKey: {}", paymentKey, e);
+      // 후처리 실패해도 결제는 완료된 상태이므로 예외를 던지지 않음
+    }
+  }
+
+  /**
+   * 결제 취소 후처리
+   */
+  @Transactional
+  public void handlePaymentCanceled(String paymentKey, String orderId) {
+    try {
+      log.info("결제 취소 후처리 시작 - paymentKey: {}, orderId: {}", paymentKey, orderId);
+
+      // 1. 결제 정보 조회
+      Payment payment = paymentRepository.findByPaymentKey(paymentKey)
+          .orElseThrow(() -> new RuntimeException("결제 정보를 찾을 수 없습니다: " + paymentKey));
+
+      // 2. 주문 상태 변경
+      // orderService.updateOrderStatus(orderId, "CANCELED");
+
+      // 3. 포인트 차감, 쿠폰 복원 등
+      // pointService.refundPoints(payment.getUserId(), payment.getAmount());
+
+      // 4. 결제 취소 알림 발송
+      // notificationService.sendPaymentCanceledNotification(payment.getUserId(), payment);
+
+      log.info("결제 취소 후처리 완료 - paymentKey: {}", paymentKey);
+
+    } catch (Exception e) {
+      log.error("결제 취소 후처리 실패 - paymentKey: {}", paymentKey, e);
+    }
+  }
 
   /**
    * 결제 요청 생성 (카드 결제)
@@ -106,21 +171,65 @@ public class TossPaymentService {
   }
 
   /**
-   * 결제 승인 처리
+   * 결제 승인 처리 (개선된 버전)
    */
+  @Transactional
   public PaymentResponseDTO confirmPayment(PaymentConfirmRequestDTO confirmDTO, Long userId) throws Exception {
+    log.info("결제 승인 시작 - orderId: {}, userId: {}, amount: {}",
+        confirmDTO.getOrderId(), userId, confirmDTO.getAmount());
+
     // DB에서 결제 정보 조회
     Payment payment = paymentRepository.findByOrderIdAndUserId(confirmDTO.getOrderId(), userId)
-        .orElseThrow(() -> new RuntimeException("결제 정보를 찾을 수 없습니다."));
+        .orElseThrow(() -> {
+          log.error("결제 정보 없음 - orderId: {}, userId: {}", confirmDTO.getOrderId(), userId);
+          return new PaymentNotFoundException("결제 정보를 찾을 수 없습니다.");
+        });
+
+    // 결제 상태 검증
+    if (payment.getStatus() != Payment.PaymentStatus.READY) {
+      log.error("결제 상태 오류 - orderId: {}, currentStatus: {}", confirmDTO.getOrderId(), payment.getStatus());
+      throw new InvalidPaymentStatusException("결제할 수 없는 상태입니다: " + payment.getStatus());
+    }
 
     // 금액 검증
     if (!payment.getAmount().equals(confirmDTO.getAmount())) {
-      throw new RuntimeException("결제 금액이 일치하지 않습니다.");
+      log.error("결제 금액 불일치 - orderId: {}, expected: {}, actual: {}",
+          confirmDTO.getOrderId(), payment.getAmount(), confirmDTO.getAmount());
+      throw new PaymentAmountMismatchException("결제 금액이 일치하지 않습니다.");
     }
 
     // 토스페이먼츠 API 호출
-    String url = apiUrl + "/payments/confirm";
+    try {
+      String tossResponse = callTossConfirmAPI(confirmDTO);
+      JsonNode jsonNode = objectMapper.readTree(tossResponse);
 
+      // 결제 정보 업데이트
+      payment.setPaymentKey(confirmDTO.getPaymentKey());
+      payment.approve();
+
+      Payment savedPayment = paymentRepository.save(payment);
+
+      log.info("결제 승인 완료 - orderId: {}, paymentKey: {}",
+          confirmDTO.getOrderId(), confirmDTO.getPaymentKey());
+
+      return PaymentResponseDTO.from(savedPayment);
+
+    } catch (HttpClientErrorException e) {
+      // 토스 API 에러 처리
+      handleTossAPIError(payment, e);
+      throw new TossPaymentException("토스페이먼츠 승인 실패: " + e.getResponseBodyAsString());
+
+    } catch (Exception e) {
+      // 기타 예외 처리
+      payment.abort();
+      paymentRepository.save(payment);
+      log.error("결제 승인 실패 - orderId: {}", confirmDTO.getOrderId(), e);
+      throw new PaymentProcessException("결제 승인 실패: " + e.getMessage());
+    }
+  }
+
+  private String callTossConfirmAPI(PaymentConfirmRequestDTO confirmDTO) {
+    String url = apiUrl + "/payments/confirm";
     HttpHeaders headers = createHeaders();
 
     Map<String, Object> params = new HashMap<>();
@@ -130,23 +239,18 @@ public class TossPaymentService {
 
     HttpEntity<Map<String, Object>> request = new HttpEntity<>(params, headers);
 
-    try {
-      ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-      JsonNode jsonNode = objectMapper.readTree(response.getBody());
+    log.debug("토스 API 호출 - URL: {}, orderId: {}", url, confirmDTO.getOrderId());
 
-      // 결제 정보 업데이트
-      payment.setPaymentKey(confirmDTO.getPaymentKey());
-      payment.approve(); // 승인 처리 (상태와 승인시간 자동 설정)
+    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
+    return response.getBody();
+  }
 
-      Payment savedPayment = paymentRepository.save(payment);
-      return PaymentResponseDTO.from(savedPayment);
+  private void handleTossAPIError(Payment payment, HttpClientErrorException e) {
+    payment.abort();
+    paymentRepository.save(payment);
 
-    } catch (Exception e) {
-      payment.abort(); // 실패 처리
-      paymentRepository.save(payment);
-      log.error("결제 승인 실패", e);
-      throw new RuntimeException("결제 승인 실패: " + e.getMessage());
-    }
+    log.error("토스 API 에러 - orderId: {}, status: {}, response: {}",
+        payment.getOrderId(), e.getStatusCode(), e.getResponseBodyAsString());
   }
 
   /**
