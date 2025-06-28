@@ -1,4 +1,4 @@
-package kr.co.craftverse.craftverse_blog_api.model.dto;
+package kr.co.craftverse.craftverse_blog_api.model.dto.auth;
 
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;

@@ -1,4 +1,4 @@
-package kr.co.craftverse.craftverse_blog_api.model.dto;
+package kr.co.craftverse.craftverse_blog_api.model.dto.auth;
 
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_REGEX;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_VALIDATION_MESSAGE;

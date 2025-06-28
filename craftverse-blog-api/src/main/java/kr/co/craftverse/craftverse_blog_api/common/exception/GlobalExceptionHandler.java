@@ -11,10 +11,10 @@ import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundExcept
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.exception.DuplicateResourceException;
 import kr.co.craftverse.craftverse_blog_api.exception.InvalidPaymentStatusException;
-import kr.co.craftverse.craftverse_blog_api.exception.PaymentAmountMismatchException;
-import kr.co.craftverse.craftverse_blog_api.exception.PaymentNotFoundException;
-import kr.co.craftverse.craftverse_blog_api.exception.PaymentProcessException;
-import kr.co.craftverse.craftverse_blog_api.exception.TossPaymentException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.PaymentAmountMismatchException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.PaymentNotFoundException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.PaymentProcessException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.TossPaymentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.TypeMismatchException;

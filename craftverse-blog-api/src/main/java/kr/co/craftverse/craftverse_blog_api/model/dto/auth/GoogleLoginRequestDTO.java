@@ -1,6 +1,5 @@
-package kr.co.craftverse.craftverse_blog_api.model.dto;
+package kr.co.craftverse.craftverse_blog_api.model.dto.auth;
 
-import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Getter;
 

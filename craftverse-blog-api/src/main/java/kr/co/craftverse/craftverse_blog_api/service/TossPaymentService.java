@@ -4,13 +4,16 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import kr.co.craftverse.craftverse_blog_api.exception.InvalidPaymentStatusException;
-import kr.co.craftverse.craftverse_blog_api.exception.PaymentAmountMismatchException;
-import kr.co.craftverse.craftverse_blog_api.exception.PaymentNotFoundException;
-import kr.co.craftverse.craftverse_blog_api.exception.PaymentProcessException;
-import kr.co.craftverse.craftverse_blog_api.exception.TossPaymentException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.PaymentAmountMismatchException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.PaymentNotFoundException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.PaymentProcessException;
+import kr.co.craftverse.craftverse_blog_api.exception.payment.TossPaymentException;
 import kr.co.craftverse.craftverse_blog_api.model.dto.*;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentCancelRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentConfirmRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Payment;
-import kr.co.craftverse.craftverse_blog_api.model.entity.Payment.PaymentStatus;
 import kr.co.craftverse.craftverse_blog_api.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +24,6 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
 import java.util.*;
 
 @Slf4j
@@ -113,61 +115,6 @@ public class TossPaymentService {
 
     Payment savedPayment = paymentRepository.save(payment);
     return PaymentResponseDTO.from(savedPayment);
-  }
-
-  /**
-   * 가상계좌 발급 요청
-   */
-  public PaymentResponseDTO createVirtualAccount(VirtualAccountRequestDTO requestDTO, Long userId) {
-    String orderId = generateOrderId();
-
-    try {
-      String url = apiUrl + "/virtual-accounts";
-
-      HttpHeaders headers = createHeaders();
-
-      Map<String, Object> params = new HashMap<>();
-      params.put("amount", requestDTO.getAmount());
-      params.put("orderId", orderId);
-      params.put("orderName", requestDTO.getOrderName());
-      params.put("customerName", requestDTO.getCustomerName());
-      params.put("bank", requestDTO.getBank());
-
-      if (requestDTO.getCustomerEmail() != null) {
-        params.put("customerEmail", requestDTO.getCustomerEmail());
-      }
-      if (requestDTO.getCustomerMobilePhone() != null) {
-        params.put("customerMobilePhone", requestDTO.getCustomerMobilePhone());
-      }
-      if (requestDTO.getValidHours() != null) {
-        params.put("validHours", requestDTO.getValidHours());
-      }
-
-      HttpEntity<Map<String, Object>> request = new HttpEntity<>(params, headers);
-
-      ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, request, String.class);
-      JsonNode jsonNode = objectMapper.readTree(response.getBody());
-
-      // 가상계좌 정보로 Payment 생성
-      Payment payment = Payment.createPayment(
-          orderId,
-          requestDTO.getAmount(),
-          requestDTO.getOrderName(),
-          requestDTO.getCustomerEmail(),
-          requestDTO.getCustomerName(),
-          userId
-      );
-
-      payment.setPaymentKey(jsonNode.get("paymentKey").asText());
-      payment.updateStatus(Payment.PaymentStatus.WAITING_FOR_DEPOSIT);
-
-      Payment savedPayment = paymentRepository.save(payment);
-      return PaymentResponseDTO.from(savedPayment);
-
-    } catch (Exception e) {
-      log.error("가상계좌 발급 실패", e);
-      throw new RuntimeException("가상계좌 발급에 실패했습니다: " + e.getMessage());
-    }
   }
 
   /**

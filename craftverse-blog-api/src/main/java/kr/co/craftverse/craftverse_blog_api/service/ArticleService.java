@@ -16,7 +16,7 @@ import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
-import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchases;
+import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchase;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchasesRepository;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticleRepository;
 import lombok.RequiredArgsConstructor;
@@ -57,7 +57,7 @@ public class ArticleService {
       throw new BadRequestException();
 
     // 4. 이미 구매한 아티클인지 확인 (중복 구매 방지)
-    Optional<ArticlePurchases> existingPurchase =
+    Optional<ArticlePurchase> existingPurchase =
         articlePurchasesRepository.findByUserIdAndArticleIdAndLanguageAndCompleted(
             userId, articleId, language);
 
@@ -70,7 +70,7 @@ public class ArticleService {
     // 5. 새로운 구매 기록 생성
     long currentTimestamp = System.currentTimeMillis();
 
-    ArticlePurchases newPurchase = ArticlePurchases.builder()
+    ArticlePurchase newPurchase = ArticlePurchase.builder()
         .userId(userId)
         .paymentKey(paymentKey)
         .orderId(orderId)
@@ -87,7 +87,7 @@ public class ArticleService {
     newPurchase.setArticleIdByLanguage(language, articleId);
 
     // 6. 데이터베이스에 저장
-    ArticlePurchases savedPurchase = articlePurchasesRepository.save(newPurchase);
+    ArticlePurchase savedPurchase = articlePurchasesRepository.save(newPurchase);
 
     log.info("프리미엄 아티클 구매 완료. userId: {}, articleId: {}, price: {}, paymentKey: {}",
         userId, articleId, article.getPremiumPrice(), paymentKey);
@@ -175,7 +175,7 @@ public class ArticleService {
    * 사용자가 구매한 모든 프리미엄 아티클 조회
    */
   public List<ArticlePurchaseDTO> getUserPremiumArticles(Long userId) {
-    List<ArticlePurchases> purchases =
+    List<ArticlePurchase> purchases =
         articlePurchasesRepository.findByUserIdAndPaymentStatusOrderByPurchaseDateDesc(userId, PAYMENT_STATUS_COMPLETED);
 
     return purchases.stream()
@@ -186,7 +186,7 @@ public class ArticleService {
   /**
    * Entity를 DTO로 변환
    */
-  private ArticlePurchaseDTO convertToDTO(ArticlePurchases purchase) {
+  private ArticlePurchaseDTO convertToDTO(ArticlePurchase purchase) {
     return ArticlePurchaseDTO.builder()
         .id(purchase.getId())
         .userId(purchase.getUserId())
@@ -344,12 +344,12 @@ public class ArticleService {
     log.info("Query parameters: userId={}, articleId={}, language={}", userId, articleId, language);
 
     try {
-      List<ArticlePurchases> purchases = articlePurchasesRepository.findByUserId(userId);
+      List<ArticlePurchase> purchases = articlePurchasesRepository.findByUserId(userId);
       log.info("Found {} total purchases for userId: {}", purchases.size(), userId);
 
       // 모든 구매 내역 상세 로깅
       for (int i = 0; i < purchases.size(); i++) {
-        ArticlePurchases purchase = purchases.get(i);
+        ArticlePurchase purchase = purchases.get(i);
         log.info("Purchase {}: id={}, articleIdKo={}, articleIdEn={}, paymentStatus='{}' (trimmed='{}')",
             i + 1, purchase.getId(), purchase.getArticleIdKo(),
             purchase.getArticleIdEn(), purchase.getPaymentStatus(),
@@ -527,10 +527,10 @@ public class ArticleService {
   }
 
   public List<ArticlePurchaseDTO> getPurchasesByLanguage(Long userId, String language) {
-    List<ArticlePurchases> articlePurchases = articlePurchasesRepository.findByUserId(userId);
+    List<ArticlePurchase> articlePurchases = articlePurchasesRepository.findByUserId(userId);
     List<ArticlePurchaseDTO> articlePurchasesDTO = new ArrayList<>();
 
-    for(ArticlePurchases articlePurchase: articlePurchases) {
+    for(ArticlePurchase articlePurchase: articlePurchases) {
       Article article;
       if(LANGUAGE_KO.equals(language))
         article = articleRepository.findById(articlePurchase.getArticleIdKo())

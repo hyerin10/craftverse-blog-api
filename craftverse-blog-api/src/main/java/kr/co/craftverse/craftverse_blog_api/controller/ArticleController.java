@@ -20,7 +20,7 @@ import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseRequestDTO;
-import kr.co.craftverse.craftverse_blog_api.model.dto.PaymentResponseDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.security.CustomUserDetails;
 import kr.co.craftverse.craftverse_blog_api.service.ArticleService;
 import kr.co.craftverse.craftverse_blog_api.service.TossPaymentService;
