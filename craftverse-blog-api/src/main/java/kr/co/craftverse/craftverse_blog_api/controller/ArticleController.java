@@ -1,5 +1,10 @@
 package kr.co.craftverse.craftverse_blog_api.controller;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_VIEWED_COOKIE_PREFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.COOKIE_MAX_AGE_ONE_YEAR;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.COOKIE_PATH_ROOT;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.COOKIE_VALUE_VIEWED;
+
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -7,16 +12,14 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseRequestDTO;
-import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchasesDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.PaymentResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.security.CustomUserDetails;
 import kr.co.craftverse.craftverse_blog_api.service.ArticleService;
@@ -48,21 +51,22 @@ public class ArticleController {
 
   @PostMapping("/article/purchase")
   public RestResult<Map<String, Object>> purchaseArticle(
-      @Valid @RequestBody ArticlePurchaseRequestDTO purchaseRequest,
+      @Valid @RequestBody ArticlePurchaseRequestDTO articlePurchaseRequestDTO,
       HttpServletRequest request) throws BadRequestException {
 
     Map<String, Object> data = new LinkedHashMap<>();
 
     try {
       // 1. 토큰에서 사용자 ID 추출
-      Long userId = getUserIdFromToken(request);
+      String token = jwtTokenProvider.resolveToken(request);
+      Long userId = jwtTokenProvider.getUserId(token);
 
       logger.info("프리미엄 아티클 구매 요청 - userId: {}, articleId: {}, paymentKey: {}",
-          userId, purchaseRequest.getArticleId(), purchaseRequest.getPaymentKey());
+          userId, articlePurchaseRequestDTO.getArticleId(), articlePurchaseRequestDTO.getPaymentKey());
 
       // 2. 결제 정보 검증 (TossPaymentService 활용)
       PaymentResponseDTO payment = tossPaymentService.getPaymentByKey(
-          purchaseRequest.getPaymentKey(), userId);
+          articlePurchaseRequestDTO.getPaymentKey(), userId);
 
       // 결제 상태 확인
 //      if (!"DONE".equals(payment.getStatus())) {
@@ -70,27 +74,27 @@ public class ArticleController {
 //      }
 
       // 주문 ID 검증
-      if (!purchaseRequest.getOrderId().equals(payment.getOrderId())) {
+      if (!articlePurchaseRequestDTO.getOrderId().equals(payment.getOrderId())) {
         throw new BadRequestException("주문 ID가 일치하지 않습니다.");
       }
 
       // 결제 금액 검증
-      if (!payment.getAmount().equals(purchaseRequest.getAmount())) {
+      if (!payment.getAmount().equals(articlePurchaseRequestDTO.getAmount())) {
         throw new BadRequestException("결제 금액이 일치하지 않습니다. " +
-            "요청: " + purchaseRequest.getAmount() + ", 실제: " + payment.getAmount());
+            "요청: " + articlePurchaseRequestDTO.getAmount() + ", 실제: " + payment.getAmount());
       }
 
       // 3. 아티클 구매 처리
-      ArticlePurchasesDTO purchaseResult = articleService.purchaseArticle(
+      ArticlePurchaseDTO purchaseResult = articleService.purchaseArticle(
           userId,
-          purchaseRequest.getArticleId(),
-          purchaseRequest.getLanguage(),
-          purchaseRequest.getPaymentKey(),
-          purchaseRequest.getOrderId()
+          articlePurchaseRequestDTO.getArticleId(),
+          articlePurchaseRequestDTO.getLanguage(),
+          articlePurchaseRequestDTO.getPaymentKey(),
+          articlePurchaseRequestDTO.getOrderId()
       );
 
       // 4. 구매한 아티클 정보 조회
-      ArticleDTO articleInfo = articleService.getById(purchaseRequest.getArticleId(), request);
+      ArticleDTO articleInfo = articleService.getById(articlePurchaseRequestDTO.getArticleId(), request);
 
       data.put("purchase", purchaseResult);
       data.put("article", articleInfo);
@@ -98,7 +102,7 @@ public class ArticleController {
       data.put("success", true);
 
       logger.info("프리미엄 아티클 구매 완료 - userId: {}, articleId: {}, purchaseId: {}",
-          userId, purchaseRequest.getArticleId(), purchaseResult.getId());
+          userId, articlePurchaseRequestDTO.getArticleId(), purchaseResult.getId());
 
       return new RestResult<>(data);
 
@@ -131,45 +135,8 @@ public class ArticleController {
       data.put("message", errorMessage);
       data.put("success", false);
       data.put("error", e.getClass().getSimpleName());
-
+      //예외처리 구체적으로 필요
       throw new RuntimeException(errorMessage, e);
-    }
-  }
-
-  /**
-   * 사용자의 구매한 프리미엄 아티클 목록 조회
-   */
-  @GetMapping("/article/purchases")
-  public RestResult<Map<String, Object>> getUserPurchases(
-      @RequestParam(defaultValue = "ko") String language,
-      HttpServletRequest request) {
-
-    Map<String, Object> data = new LinkedHashMap<>();
-
-    try {
-      Long userId = getUserIdFromToken(request);
-
-      // 사용자의 모든 구매 기록 조회
-      List<ArticlePurchasesDTO> purchases = articleService.getUserPremiumArticles(userId);
-
-      // 언어별 필터링 (선택사항)
-      List<ArticlePurchasesDTO> filteredPurchases = purchases.stream()
-          .filter(purchase -> {
-            Long articleId = purchase.getArticleIdByLanguage(language);
-            return articleId != null;
-          })
-          .collect(Collectors.toList());
-
-      data.put("purchases", filteredPurchases);
-      data.put("totalCount", filteredPurchases.size());
-      data.put("language", language);
-
-      return new RestResult<>(data);
-
-    } catch (Exception e) {
-      log.error("구매 내역 조회 실패", e);
-      data.put("message", "구매 내역을 조회할 수 없습니다: " + e.getMessage());
-      throw new RuntimeException("구매 내역 조회에 실패했습니다", e);
     }
   }
 
@@ -192,7 +159,7 @@ public class ArticleController {
     return new RestResult<>(data);
   }
 
-  @GetMapping("/article-purchases")
+  @GetMapping("/article/purchases")
   public RestResult<Map<String, Object>> getPurchases(@RequestParam(name = "language", defaultValue = "en") String language) {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     Long userId = null;
@@ -212,7 +179,7 @@ public class ArticleController {
     Map<String, Object> data = new LinkedHashMap<>();
 
     // 해당 아티클에 대한 조회 쿠키 확인
-    String articleCookieName = "article_viewed_" + id;
+    String articleCookieName = ARTICLE_VIEWED_COOKIE_PREFIX + id;
     boolean hasViewedThisArticle = hasArticleViewCookie(request, articleCookieName);
 
     if (!hasViewedThisArticle) {
@@ -244,21 +211,10 @@ public class ArticleController {
   }
 
   private void createArticleViewCookie(HttpServletResponse response, String cookieName) {
-    Cookie viewCookie = new Cookie(cookieName, "viewed");
-    viewCookie.setMaxAge(365 * 24 * 60 * 60); // 1 year
+    Cookie viewCookie = new Cookie(cookieName, COOKIE_VALUE_VIEWED);
+    viewCookie.setMaxAge(COOKIE_MAX_AGE_ONE_YEAR); // 1 year
     viewCookie.setHttpOnly(true);
-    viewCookie.setPath("/");
+    viewCookie.setPath(COOKIE_PATH_ROOT);
     response.addCookie(viewCookie);
-  }
-
-  /**
-   * 토큰에서 사용자 ID 추출 (공통 메서드)
-   */
-  private Long getUserIdFromToken(HttpServletRequest request) {
-    String token = jwtTokenProvider.resolveToken(request);
-    if (token == null || !jwtTokenProvider.validateToken(token)) {
-      throw new UnauthorizedException();
-    }
-    return jwtTokenProvider.getUserId(token);
   }
 }

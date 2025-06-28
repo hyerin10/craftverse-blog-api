@@ -1,5 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.repository;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.*;
+
 import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchases;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -48,7 +50,7 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    */
   @Query("SELECT COUNT(p) > 0 FROM ArticlePurchases p " +
       "WHERE p.userId = :userId AND p.articleIdKo = :articleId " +
-      "AND p.paymentStatus = 'completed'")
+      "AND p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "'")
   boolean existsByUserIdAndArticleIdKoAndCompleted(
       @Param("userId") Long userId,
       @Param("articleId") Long articleId);
@@ -58,7 +60,7 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    */
   @Query("SELECT COUNT(p) > 0 FROM ArticlePurchases p " +
       "WHERE p.userId = :userId AND p.articleIdEn = :articleId " +
-      "AND p.paymentStatus = 'completed'")
+      "AND p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "'")
   boolean existsByUserIdAndArticleIdEnAndCompleted(
       @Param("userId") Long userId,
       @Param("articleId") Long articleId);
@@ -68,9 +70,9 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    */
   @Query("SELECT p FROM ArticlePurchases p " +
       "WHERE p.userId = :userId " +
-      "AND ((:language = 'ko' AND p.articleIdKo = :articleId) " +
-      "     OR (:language = 'en' AND p.articleIdEn = :articleId)) " +
-      "AND p.paymentStatus = 'completed'")
+      "AND ((:language = '" + LANGUAGE_KO + "' AND p.articleIdKo = :articleId) " +
+      "     OR (:language = '" + LANGUAGE_EN + "' AND p.articleIdEn = :articleId)) " +
+      "AND p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "'")
   Optional<ArticlePurchases> findByUserIdAndArticleIdAndLanguageAndCompleted(
       @Param("userId") Long userId,
       @Param("articleId") Long articleId,
@@ -85,14 +87,14 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    * 특정 아티클의 구매자 수 조회 (한국어, 완료된 결제만)
    */
   @Query("SELECT COUNT(DISTINCT p.userId) FROM ArticlePurchases p " +
-      "WHERE p.articleIdKo = :articleId AND p.paymentStatus = 'completed'")
+      "WHERE p.articleIdKo = :articleId AND p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "'")
   long countDistinctUsersByArticleIdKoAndCompleted(@Param("articleId") Long articleId);
 
   /**
    * 특정 아티클의 구매자 수 조회 (영어, 완료된 결제만)
    */
   @Query("SELECT COUNT(DISTINCT p.userId) FROM ArticlePurchases p " +
-      "WHERE p.articleIdEn = :articleId AND p.paymentStatus = 'completed'")
+      "WHERE p.articleIdEn = :articleId AND p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "'")
   long countDistinctUsersByArticleIdEnAndCompleted(@Param("articleId") Long articleId);
 
   /**
@@ -143,7 +145,7 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    */
   @Query("SELECT p FROM ArticlePurchases p " +
       "WHERE p.userId = :userId AND p.articleIdKo = :articleId " +
-      "AND p.paymentStatus IN ('pending', 'completed')")
+      "AND p.paymentStatus IN ('" + PAYMENT_STATUS_PENDING + "', '" + PAYMENT_STATUS_COMPLETED + "')")
   List<ArticlePurchases> findActiveKoreanPurchases(
       @Param("userId") Long userId,
       @Param("articleId") Long articleId);
@@ -153,7 +155,7 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    */
   @Query("SELECT p FROM ArticlePurchases p " +
       "WHERE p.userId = :userId AND p.articleIdEn = :articleId " +
-      "AND p.paymentStatus IN ('pending', 'completed')")
+      "AND p.paymentStatus IN ('" + PAYMENT_STATUS_PENDING + "', '" + PAYMENT_STATUS_COMPLETED + "')")
   List<ArticlePurchases> findActiveEnglishPurchases(
       @Param("userId") Long userId,
       @Param("articleId") Long articleId);
@@ -162,7 +164,7 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    * 최근 N일간의 매출 통계
    */
   @Query("SELECT COUNT(p), SUM(p.purchasePrice) FROM ArticlePurchases p " +
-      "WHERE p.paymentStatus = 'completed' " +
+      "WHERE p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "' " +
       "AND p.purchaseDate >= :startDate")
   Object[] getRevenueStats(@Param("startDate") Long startDate);
 
@@ -170,6 +172,6 @@ public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchas
    * 사용자별 총 구매 금액 조회
    */
   @Query("SELECT SUM(p.purchasePrice) FROM ArticlePurchases p " +
-      "WHERE p.userId = :userId AND p.paymentStatus = 'completed'")
+      "WHERE p.userId = :userId AND p.paymentStatus = '" + PAYMENT_STATUS_COMPLETED + "'")
   Long getTotalPurchaseAmountByUserId(@Param("userId") Long userId);
 }

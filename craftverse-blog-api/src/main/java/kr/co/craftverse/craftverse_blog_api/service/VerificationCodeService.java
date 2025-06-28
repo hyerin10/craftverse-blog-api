@@ -1,5 +1,8 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.VERIFICATION_CODE_FORMAT;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.VERIFICATION_CODE_MAX_VALUE;
+
 import java.time.Duration;
 import java.util.Random;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +26,7 @@ public class VerificationCodeService {
    */
   public String generateVerificationCode() {
     Random random = new Random();
-    return String.format("%06d", random.nextInt(1000000));
+    return String.format(VERIFICATION_CODE_FORMAT, random.nextInt(VERIFICATION_CODE_MAX_VALUE));
   }
 
   /**

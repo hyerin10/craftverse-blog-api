@@ -1,5 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.model.entity;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.*;
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -85,15 +87,15 @@ public class ArticlePurchases {
 
   // 유틸리티 메서드들
   public boolean isCompleted() {
-    return "completed".equals(this.paymentStatus);
+    return PAYMENT_STATUS_COMPLETED.equals(this.paymentStatus);
   }
 
   public boolean isPending() {
-    return "pending".equals(this.paymentStatus);
+    return PAYMENT_STATUS_PENDING.equals(this.paymentStatus);
   }
 
   public boolean isFailed() {
-    return "failed".equals(this.paymentStatus);
+    return PAYMENT_STATUS_FAILED.equals(this.paymentStatus);
   }
 
   // UTC 타임스탬프를 LocalDateTime으로 변환하는 헬퍼 메서드
@@ -123,7 +125,7 @@ public class ArticlePurchases {
 
   // 언어별 아티클 ID 조회 메서드
   public Long getArticleIdByLanguage(String language) {
-    if ("en".equals(language)) {
+    if (LANGUAGE_EN.equals(language)) {
       return this.articleIdEn;
     }
     return this.articleIdKo; // 기본값은 한국어
@@ -131,7 +133,7 @@ public class ArticlePurchases {
 
   // 언어별 아티클 ID 설정 메서드
   public void setArticleIdByLanguage(String language, Long articleId) {
-    if ("en".equals(language)) {
+    if (LANGUAGE_EN.equals(language)) {
       this.articleIdEn = articleId;
     } else {
       this.articleIdKo = articleId;
