@@ -6,8 +6,8 @@ import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWOR
 
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
-import kr.co.craftverse.craftverse_blog_api.model.dto.ResetPasswordRequestDTO;
-import kr.co.craftverse.craftverse_blog_api.model.dto.VerifyPasswordResetDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.auth.ResetPasswordRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.auth.VerifyPasswordResetDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.User;
 import kr.co.craftverse.craftverse_blog_api.repository.UserRepository;
 import kr.co.craftverse.craftverse_blog_api.service.messaging.EmailProducer;

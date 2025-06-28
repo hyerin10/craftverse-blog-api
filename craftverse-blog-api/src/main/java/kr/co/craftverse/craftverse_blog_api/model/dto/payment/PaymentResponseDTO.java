@@ -1,10 +1,9 @@
-package kr.co.craftverse.craftverse_blog_api.model.dto;
+package kr.co.craftverse.craftverse_blog_api.model.dto.payment;
 
 import kr.co.craftverse.craftverse_blog_api.model.entity.Payment;
 import kr.co.craftverse.craftverse_blog_api.common.util.TimeUtils;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter

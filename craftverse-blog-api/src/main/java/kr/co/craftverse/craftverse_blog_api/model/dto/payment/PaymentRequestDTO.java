@@ -1,4 +1,4 @@
-package kr.co.craftverse.craftverse_blog_api.model.dto;
+package kr.co.craftverse.craftverse_blog_api.model.dto.payment;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
