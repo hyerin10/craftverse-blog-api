@@ -1,5 +1,8 @@
 package kr.co.craftverse.craftverse_blog_api.config;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.AUTHORIZATION_HEADER;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.BEARER_PREFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.BEARER_PREFIX_LENGTH;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.BLACKLIST_PREFIX;
 
 import io.jsonwebtoken.Claims;
@@ -131,9 +134,9 @@ public class JwtTokenProvider {
 
   // Request에서 JWT 토큰 추출
   public String resolveToken(HttpServletRequest request) {
-    String bearerToken = request.getHeader("Authorization");
-    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-      return bearerToken.substring(7);
+    String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+      return bearerToken.substring(BEARER_PREFIX_LENGTH);
     }
     return null;
   }

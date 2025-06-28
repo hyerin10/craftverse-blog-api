@@ -1,5 +1,8 @@
 package kr.co.craftverse.craftverse_blog_api.model.dto;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_REGEX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_VALIDATION_MESSAGE;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -28,8 +31,8 @@ public class UserRegistrationRequestDTO {
 
   @NotBlank(message = "Password is required")
   @Size(min = 8, message = "Password must be at least 8 characters")
-  @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$",
-      message = "Password must contain at least one digit, one lowercase, one uppercase, one special character, and no whitespace")
+  @Pattern(regexp = PASSWORD_REGEX,
+      message = PASSWORD_VALIDATION_MESSAGE)
   private String password;
 
   private Long birthDate;

@@ -1,5 +1,7 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.*;
+
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
-import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchasesDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
 import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchases;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchasesRepository;
@@ -32,14 +34,10 @@ public class ArticleService {
   private final RedisTemplate<String, Object> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
 
-  private static final String PURCHASE_CACHE_PREFIX = "article_purchase:";
-  private static final long CACHE_EXPIRE_HOURS = 24;
-  private static final double PREVIEW_CONTENT_RATIO = 0.3;
-
   /**
    * 프리미엄 아티클 구매 처리 (가격 필드 사용)
    */
-  public ArticlePurchasesDTO purchaseArticle(
+  public ArticlePurchaseDTO purchaseArticle(
       Long userId,
       Long articleId,
       String language,
@@ -77,8 +75,8 @@ public class ArticleService {
         .paymentKey(paymentKey)
         .orderId(orderId)
         .purchasePrice(article.getPremiumPrice()) // BigDecimal 타입으로 저장
-        .paymentStatus("completed")
-        .paymentMethod("card") // 기본값, 필요시 파라미터로 받기
+        .paymentStatus(PAYMENT_STATUS_COMPLETED)
+        .paymentMethod(PAYMENT_METHOD_CARD) // 기본값, 필요시 파라미터로 받기
         .purchaseDate(currentTimestamp)
         .approvedAt(currentTimestamp)
         .createdAt(currentTimestamp)
@@ -151,12 +149,12 @@ public class ArticleService {
       return content;
     }
 
-    int previewLength = (int) (content.length() * 0.3); // 30%만 제공
+    int previewLength = (int) (content.length() * PREVIEW_CONTENT_RATIO); // 30%만 제공
     String filteredContent = content.substring(0, Math.min(previewLength, content.length()));
 
     // 마지막에 "..." 추가하여 더 있다는 것을 표시
     if (previewLength < content.length()) {
-      filteredContent += "...";
+      filteredContent += CONTENT_TRUNCATION_SUFFIX;
     }
 
     return filteredContent;
@@ -166,7 +164,7 @@ public class ArticleService {
    * 사용자의 프리미엄 아티클 구매 여부 확인
    */
   public boolean hasPremiumAccess(Long userId, Long articleId, String language) {
-    if ("en".equals(language)) {
+    if (LANGUAGE_EN.equals(language)) {
       return articlePurchasesRepository.existsByUserIdAndArticleIdEnAndCompleted(userId, articleId);
     } else {
       return articlePurchasesRepository.existsByUserIdAndArticleIdKoAndCompleted(userId, articleId);
@@ -176,9 +174,9 @@ public class ArticleService {
   /**
    * 사용자가 구매한 모든 프리미엄 아티클 조회
    */
-  public List<ArticlePurchasesDTO> getUserPremiumArticles(Long userId) {
+  public List<ArticlePurchaseDTO> getUserPremiumArticles(Long userId) {
     List<ArticlePurchases> purchases =
-        articlePurchasesRepository.findByUserIdAndPaymentStatusOrderByPurchaseDateDesc(userId, "completed");
+        articlePurchasesRepository.findByUserIdAndPaymentStatusOrderByPurchaseDateDesc(userId, PAYMENT_STATUS_COMPLETED);
 
     return purchases.stream()
         .map(this::convertToDTO)
@@ -188,8 +186,8 @@ public class ArticleService {
   /**
    * Entity를 DTO로 변환
    */
-  private ArticlePurchasesDTO convertToDTO(ArticlePurchases purchase) {
-    return ArticlePurchasesDTO.builder()
+  private ArticlePurchaseDTO convertToDTO(ArticlePurchases purchase) {
+    return ArticlePurchaseDTO.builder()
         .id(purchase.getId())
         .userId(purchase.getUserId())
         .articleIdKo(purchase.getArticleIdKo())
@@ -364,7 +362,7 @@ public class ArticleService {
         Long targetArticleId = null;
 
         // 아티클 ID 매칭 확인
-        if ("ko".equals(language)) {
+        if (LANGUAGE_KO.equals(language)) {
           targetArticleId = purchase.getArticleIdKo();
           articleMatches = articleId.equals(targetArticleId);
         } else {
@@ -377,10 +375,10 @@ public class ArticleService {
         if (paymentStatus != null) {
           String normalizedStatus = paymentStatus.trim().toLowerCase();
           // 다양한 완료 상태 허용
-          statusMatches = "completed".equals(normalizedStatus) ||
-              "complete".equals(normalizedStatus) ||
-              "success".equals(normalizedStatus) ||
-              "paid".equals(normalizedStatus);
+          statusMatches = PAYMENT_STATUS_COMPLETED.equals(normalizedStatus) ||
+              PAYMENT_STATUS_COMPLETE.equals(normalizedStatus) ||
+              PAYMENT_STATUS_SUCCESS.equals(normalizedStatus) ||
+              PAYMENT_STATUS_PAID.equals(normalizedStatus);
 
           log.info("Payment status check: original='{}', normalized='{}', matches={}",
               paymentStatus, normalizedStatus, statusMatches);
@@ -437,10 +435,10 @@ public class ArticleService {
     }
 
     try {
-      String textOnly = content.replaceAll("<[^>]*>", "");
+      String textOnly = content.replaceAll(HTML_TAG_REGEX, "");
       int targetLength = (int) (textOnly.length() * PREVIEW_CONTENT_RATIO);
 
-      String[] words = textOnly.split("\\s+");
+      String[] words = textOnly.split(WHITESPACE_REGEX);
       int targetWordCount = (int) (words.length * PREVIEW_CONTENT_RATIO);
 
       if (targetWordCount == 0) {
@@ -448,7 +446,7 @@ public class ArticleService {
       }
 
       StringBuilder truncated = new StringBuilder();
-      String[] originalWords = content.split("\\s+");
+      String[] originalWords = content.split(WHITESPACE_REGEX);
 
       for (int i = 0; i < Math.min(targetWordCount, originalWords.length); i++) {
         if (i > 0) truncated.append(" ");
@@ -528,20 +526,20 @@ public class ArticleService {
         .collect(Collectors.toList());
   }
 
-  public List<ArticlePurchasesDTO> getPurchasesByLanguage(Long userId, String language) {
+  public List<ArticlePurchaseDTO> getPurchasesByLanguage(Long userId, String language) {
     List<ArticlePurchases> articlePurchases = articlePurchasesRepository.findByUserId(userId);
-    List<ArticlePurchasesDTO> articlePurchasesDTO = new ArrayList<>();
+    List<ArticlePurchaseDTO> articlePurchasesDTO = new ArrayList<>();
 
     for(ArticlePurchases articlePurchase: articlePurchases) {
       Article article;
-      if(language.equals("ko"))
+      if(LANGUAGE_KO.equals(language))
         article = articleRepository.findById(articlePurchase.getArticleIdKo())
             .orElseThrow(NotFoundException::new);
       else
         article = articleRepository.findById(articlePurchase.getArticleIdEn())
             .orElseThrow(NotFoundException::new);
 
-      ArticlePurchasesDTO articlePurchaseDTO = ArticlePurchasesDTO.builder()
+      ArticlePurchaseDTO articlePurchaseDTO = ArticlePurchaseDTO.builder()
           .id(articlePurchase.getId())
           .purchaseDate(articlePurchase.getPurchaseDate())
           .purchasePrice(articlePurchase.getPurchasePrice())
@@ -559,11 +557,11 @@ public class ArticleService {
   public void invalidatePurchaseCache(Long userId, Long articleIdKo, Long articleIdEn) {
     try {
       if (articleIdKo != null) {
-        String cacheKeyKo = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdKo + ":ko";
+        String cacheKeyKo = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdKo + ":" + LANGUAGE_KO;
         redisTemplate.delete(cacheKeyKo);
       }
       if (articleIdEn != null) {
-        String cacheKeyEn = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdEn + ":en";
+        String cacheKeyEn = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdEn + ":" + LANGUAGE_EN;
         redisTemplate.delete(cacheKeyEn);
       }
       log.info("Purchase cache invalidated for userId: {}", userId);

@@ -1,6 +1,8 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_RESET_PREFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_RESET_VERIFIED_PREFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PASSWORD_RESET_VERIFIED_VALUE;
 
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
@@ -55,14 +57,14 @@ public class PasswordResetService {
     logger.info("[PasswordResetService] 비밀번호 재설정 요청: {}", email);
 
     // 1. 인증 코드 검증 (이미 /verify-code 단계에서 검증되었지만 보안을 위해 한 번 더 확인)
-    String codeKey = "password_reset:" + email;
+    String codeKey = PASSWORD_RESET_PREFIX + email;
 
     // 먼저 코드가 존재하는지 확인
     if (!verificationCodeService.existsCode(codeKey)) {
       // 코드가 없다면 이미 사용되었거나 만료된 것
       // 하지만 비밀번호 재설정 프로세스에서는 코드가 이미 검증되어 삭제된 상태일 수 있음
       // 따라서 검증된 상태임을 표시하는 별도 키를 확인
-      String verifiedKey = "password_reset_verified:" + email;
+      String verifiedKey = PASSWORD_RESET_VERIFIED_PREFIX + email;
 
       if (!verificationCodeService.existsCode(verifiedKey)) {
         logger.warn("[PasswordResetService] 인증되지 않은 비밀번호 재설정 요청: {}", email);
@@ -92,7 +94,7 @@ public class PasswordResetService {
     userRepository.save(user);
 
     // 4. 검증 완료 표시 키도 삭제 (있다면)
-    String verifiedKey = "password_reset_verified:" + email;
+    String verifiedKey = PASSWORD_RESET_VERIFIED_PREFIX + email;
     verificationCodeService.deleteCode(verifiedKey);
 
     logger.info("[PasswordResetService] 비밀번호 재설정 완료: {}", email);
@@ -111,13 +113,13 @@ public class PasswordResetService {
     User user = userRepository.findByEmail(email)
         .orElseThrow(UnauthorizedException::new);
 
-    String codeKey = "password_reset:" + email;
+    String codeKey = PASSWORD_RESET_PREFIX + email;
     boolean isValid = verificationCodeService.verifyCode(codeKey, inputCode);
 
     if (isValid) {
       // 검증 성공 시 임시 검증 완료 표시 저장 (5분 동안 유효)
-      String verifiedKey = "password_reset_verified:" + email;
-      verificationCodeService.saveVerificationCode(verifiedKey, "verified"); // 5분
+      String verifiedKey = PASSWORD_RESET_VERIFIED_PREFIX + email;
+      verificationCodeService.saveVerificationCode(verifiedKey, PASSWORD_RESET_VERIFIED_VALUE); // 5분
 
       logger.info("[PasswordResetService] 비밀번호 재설정 코드 검증 성공: {}", email);
     } else {

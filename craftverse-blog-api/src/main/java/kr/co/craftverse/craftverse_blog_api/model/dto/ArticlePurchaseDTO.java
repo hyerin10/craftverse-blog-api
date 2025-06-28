@@ -1,5 +1,10 @@
 package kr.co.craftverse.craftverse_blog_api.model.dto;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.LANGUAGE_EN;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_COMPLETED;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_FAILED;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_PENDING;
+
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -16,7 +21,7 @@ import java.time.ZoneOffset;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
-public class ArticlePurchasesDTO {
+public class ArticlePurchaseDTO {
 
   private Long id;
   private Long userId;
@@ -63,7 +68,7 @@ public class ArticlePurchasesDTO {
 
   // 언어별 아티클 ID 조회 메서드
   public Long getArticleIdByLanguage(String language) {
-    if ("en".equals(language)) {
+    if (LANGUAGE_EN.equals(language)) {
       return this.articleIdEn;
     }
     return this.articleIdKo; // 기본값은 한국어
@@ -71,14 +76,14 @@ public class ArticlePurchasesDTO {
 
   // 상태 확인 메서드들
   public boolean isCompleted() {
-    return "completed".equals(this.paymentStatus);
+    return PAYMENT_STATUS_COMPLETED.equals(this.paymentStatus);
   }
 
   public boolean isPending() {
-    return "pending".equals(this.paymentStatus);
+    return PAYMENT_STATUS_PENDING.equals(this.paymentStatus);
   }
 
   public boolean isFailed() {
-    return "failed".equals(this.paymentStatus);
+    return PAYMENT_STATUS_FAILED.equals(this.paymentStatus);
   }
 }
