@@ -285,11 +285,7 @@ public class AuthController {
   @PostMapping("/logout")
   public RestResult<Map<String, Object>> logout(HttpServletRequest request) {
     Map<String, Object> data = new LinkedHashMap<>();
-
-    // 일반 로그아웃과 소셜 로그아웃을 모두 처리
     userService.logout(request);
-    oAuth2Service.logout(request);
-
     data.put("message", "로그아웃되었습니다.");
     return new RestResult<>(data);
   }

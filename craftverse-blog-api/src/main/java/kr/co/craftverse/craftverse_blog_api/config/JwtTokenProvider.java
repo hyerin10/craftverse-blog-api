@@ -135,9 +135,8 @@ public class JwtTokenProvider {
   // Request에서 JWT 토큰 추출
   public String resolveToken(HttpServletRequest request) {
     String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
-    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX))
       return bearerToken.substring(BEARER_PREFIX_LENGTH);
-    }
     return null;
   }
 }
