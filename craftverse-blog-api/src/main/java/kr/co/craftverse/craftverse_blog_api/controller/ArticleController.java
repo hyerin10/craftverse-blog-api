@@ -20,7 +20,9 @@ import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentConfirmRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentResponseDTO;
+import kr.co.craftverse.craftverse_blog_api.model.entity.Payment;
 import kr.co.craftverse.craftverse_blog_api.security.CustomUserDetails;
 import kr.co.craftverse.craftverse_blog_api.service.ArticleService;
 import kr.co.craftverse.craftverse_blog_api.service.TossPaymentService;
@@ -52,92 +54,58 @@ public class ArticleController {
   @PostMapping("/article/purchase")
   public RestResult<Map<String, Object>> purchaseArticle(
       @Valid @RequestBody ArticlePurchaseRequestDTO articlePurchaseRequestDTO,
-      HttpServletRequest request) throws BadRequestException {
+      HttpServletRequest request) throws Exception {
 
     Map<String, Object> data = new LinkedHashMap<>();
 
-    try {
-      // 1. 토큰에서 사용자 ID 추출
-      String token = jwtTokenProvider.resolveToken(request);
-      Long userId = jwtTokenProvider.getUserId(token);
-
-      logger.info("프리미엄 아티클 구매 요청 - userId: {}, articleId: {}, paymentKey: {}",
-          userId, articlePurchaseRequestDTO.getArticleId(), articlePurchaseRequestDTO.getPaymentKey());
-
-      // 2. 결제 정보 검증 (TossPaymentService 활용)
-      PaymentResponseDTO payment = tossPaymentService.getPaymentByKey(
-          articlePurchaseRequestDTO.getPaymentKey(), userId);
-
-      // 결제 상태 확인
-//      if (!"DONE".equals(payment.getStatus())) {
-//        throw new BadRequestException("결제가 완료되지 않았습니다. 현재 상태: " + payment.getStatus());
-//      }
-
-      // 주문 ID 검증
-      if (!articlePurchaseRequestDTO.getOrderId().equals(payment.getOrderId())) {
-        throw new BadRequestException("주문 ID가 일치하지 않습니다.");
-      }
-
-      // 결제 금액 검증
-      if (!payment.getAmount().equals(articlePurchaseRequestDTO.getAmount())) {
-        throw new BadRequestException("결제 금액이 일치하지 않습니다. " +
-            "요청: " + articlePurchaseRequestDTO.getAmount() + ", 실제: " + payment.getAmount());
-      }
-
-      // 3. 아티클 구매 처리
-      ArticlePurchaseDTO purchaseResult = articleService.purchaseArticle(
-          userId,
-          articlePurchaseRequestDTO.getArticleId(),
-          articlePurchaseRequestDTO.getLanguage(),
-          articlePurchaseRequestDTO.getPaymentKey(),
-          articlePurchaseRequestDTO.getOrderId()
-      );
-
-      // 4. 구매한 아티클 정보 조회
-      ArticleDTO articleInfo = articleService.getById(articlePurchaseRequestDTO.getArticleId(), request);
-
-      data.put("purchase", purchaseResult);
-      data.put("article", articleInfo);
-      data.put("message", "프리미엄 아티클 구매가 완료되었습니다.");
-      data.put("success", true);
-
-      logger.info("프리미엄 아티클 구매 완료 - userId: {}, articleId: {}, purchaseId: {}",
-          userId, articlePurchaseRequestDTO.getArticleId(), purchaseResult.getId());
-
-      return new RestResult<>(data);
-
-    } catch (UnauthorizedException e) {
-      logger.error("인증 실패 - 로그인이 필요합니다", e);
-      data.put("message", "로그인이 필요합니다.");
-      data.put("success", false);
-      throw e;
-
-    } catch (BadRequestException e) {
-      logger.error("잘못된 요청 - {}", e.getMessage(), e);
-      data.put("message", e.getMessage());
-      data.put("success", false);
-      throw e;
-
-    } catch (NotFoundException e) {
-      logger.error("리소스를 찾을 수 없음 - {}", e.getMessage(), e);
-      data.put("message", e.getMessage());
-      data.put("success", false);
-      throw e;
-
-    } catch (Exception e) {
-      logger.error("프리미엄 아티클 구매 처리 실패", e);
-
-      String errorMessage = "아티클 구매 처리에 실패했습니다";
-      if (e.getMessage() != null && !e.getMessage().isEmpty()) {
-        errorMessage += ": " + e.getMessage();
-      }
-
-      data.put("message", errorMessage);
-      data.put("success", false);
-      data.put("error", e.getClass().getSimpleName());
-      //예외처리 구체적으로 필요
-      throw new RuntimeException(errorMessage, e);
+    // 1. 토큰에서 사용자 ID 추출
+    String token = jwtTokenProvider.resolveToken(request);
+    if (token == null || !jwtTokenProvider.validateToken(token)) {
+      throw new UnauthorizedException();
     }
+    Long userId = jwtTokenProvider.getUserId(token);
+
+    logger.info("프리미엄 아티클 구매 요청 - userId: {}, articleId: {}, paymentKey: {}",
+        userId, articlePurchaseRequestDTO.getArticleId(), articlePurchaseRequestDTO.getPaymentKey());
+
+    // 2. 결제 승인 처리
+    PaymentConfirmRequestDTO confirmDTO = new PaymentConfirmRequestDTO();
+    confirmDTO.setPaymentKey(articlePurchaseRequestDTO.getPaymentKey());
+    confirmDTO.setOrderId(articlePurchaseRequestDTO.getOrderId());
+    confirmDTO.setAmount(articlePurchaseRequestDTO.getAmount());
+
+    PaymentResponseDTO payment = tossPaymentService.confirmPayment(confirmDTO, userId);
+
+    logger.info("결제 승인 완료 - userId: {}, paymentKey: {}, status: {}",
+        userId, articlePurchaseRequestDTO.getPaymentKey(), payment.getStatus());
+
+    // 3. 결제 상태 확인
+    if (payment.getStatus() != Payment.PaymentStatus.DONE) {
+      throw new IllegalStateException("결제 승인에 실패했습니다. 현재 상태: " + payment.getStatus());
+    }
+
+    // 4. 아티클 구매 처리
+    ArticlePurchaseDTO purchaseResult = articleService.purchaseArticle(
+        userId,
+        articlePurchaseRequestDTO.getArticleId(),
+        articlePurchaseRequestDTO.getLanguage(),
+        articlePurchaseRequestDTO.getPaymentKey(),
+        articlePurchaseRequestDTO.getOrderId()
+    );
+
+    // 5. 구매한 아티클 정보 조회
+    ArticleDTO articleInfo = articleService.getById(articlePurchaseRequestDTO.getArticleId(), request);
+
+    data.put("purchase", purchaseResult);
+    data.put("article", articleInfo);
+    data.put("payment", payment);
+    data.put("message", "프리미엄 아티클 구매가 완료되었습니다.");
+    data.put("success", true);
+
+    logger.info("프리미엄 아티클 구매 완료 - userId: {}, articleId: {}, purchaseId: {}",
+        userId, articlePurchaseRequestDTO.getArticleId(), purchaseResult.getId());
+
+    return new RestResult<>(data);
   }
 
   @GetMapping("/articles")
@@ -160,11 +128,38 @@ public class ArticleController {
   }
 
   @GetMapping("/article/purchases")
-  public RestResult<Map<String, Object>> getPurchases(@RequestParam(name = "language", defaultValue = "en") String language) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    Long userId = null;
-    if (authentication != null && authentication.getPrincipal() instanceof UserDetails)
-      userId = ((CustomUserDetails) authentication.getPrincipal()).getUserId();
+  public RestResult<Map<String, Object>> getPurchases(
+      @RequestParam(name = "language", defaultValue = "en") String language,
+      HttpServletRequest request) {
+
+    log.info("=== getPurchases 요청 시작 ===");
+
+    // JWT 토큰에서 사용자 ID 추출
+    String token = jwtTokenProvider.resolveToken(request);
+    log.info("추출된 토큰: {}", token != null ? "존재함" : "null");
+
+    if (token == null) {
+      log.error("토큰이 없습니다.");
+      throw new UnauthorizedException();
+    }
+
+    boolean isValid = jwtTokenProvider.validateToken(token);
+    log.info("토큰 유효성: {}", isValid);
+
+    if (!isValid) {
+      log.error("유효하지 않은 토큰입니다.");
+      throw new UnauthorizedException();
+    }
+
+    Long userId = jwtTokenProvider.getUserId(token);
+    log.info("추출된 userId: {}", userId);
+
+    if (userId == null) {
+      log.error("토큰에서 userId를 추출할 수 없습니다.");
+      throw new UnauthorizedException();
+    }
+
+    log.info("서비스 호출 전 - userId: {}, language: {}", userId, language);
 
     Map<String, Object> data = new LinkedHashMap<>();
     data.put("article-purchases", articleService.getPurchasesByLanguage(userId, language));

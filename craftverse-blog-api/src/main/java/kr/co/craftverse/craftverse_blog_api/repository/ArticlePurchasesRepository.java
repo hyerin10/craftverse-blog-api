@@ -14,6 +14,20 @@ import java.util.Optional;
 @Repository
 public interface ArticlePurchasesRepository extends JpaRepository<ArticlePurchase, Long> {
 
+  // ArticlePurchasesRepository.java에 추가할 메서드들
+
+  /**
+   * 사용자 ID와 한국어 아티클 ID로 완료된 구매 조회
+   */
+  @Query("SELECT ap FROM ArticlePurchase ap WHERE ap.userId = :userId AND ap.articleIdKo = :articleId AND ap.paymentStatus IN ('completed', 'complete', 'success', 'paid')")
+  Optional<ArticlePurchase> findByUserIdAndArticleIdKoAndCompleted(@Param("userId") Long userId, @Param("articleId") Long articleId);
+
+  /**
+   * 사용자 ID와 영어 아티클 ID로 완료된 구매 조회
+   */
+  @Query("SELECT ap FROM ArticlePurchase ap WHERE ap.userId = :userId AND ap.articleIdEn = :articleId AND ap.paymentStatus IN ('completed', 'complete', 'success', 'paid')")
+  Optional<ArticlePurchase> findByUserIdAndArticleIdEnAndCompleted(@Param("userId") Long userId, @Param("articleId") Long articleId);
+
   /**
    * 사용자의 모든 구매 기록 조회
    */

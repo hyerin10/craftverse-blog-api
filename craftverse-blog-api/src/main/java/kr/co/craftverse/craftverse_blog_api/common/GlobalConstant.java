@@ -88,8 +88,14 @@ public class GlobalConstant {
   // CORS 설정
   public static final String CORS_MAPPING_PATTERN = "/**";
   public static final String CORS_ALLOWED_ORIGIN = "http://localhost:5173";
-  public static final String[] CORS_ALLOWED_METHODS = {"GET", "POST", "PATCH", "DELETE"};
-  public static final String CORS_ALLOWED_HEADERS = "*";
+  public static final String[] CORS_ALLOWED_METHODS = {"GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"};
+  public static final String[] CORS_ALLOWED_HEADERS = {
+      "Authorization",
+      "Content-Type",
+      "Accept",
+      "X-Requested-With",
+      "Cache-Control"
+  };
 
   public static final String ARTICLE_VIEWED_COOKIE_PREFIX = "article_viewed_";
   public static final String COOKIE_VALUE_VIEWED = "viewed";

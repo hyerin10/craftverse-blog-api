@@ -35,6 +35,352 @@ public class ArticleService {
   private final JwtTokenProvider jwtTokenProvider;
 
   /**
+   * 아티클 단건 조회 - 토큰 여부에 따라 콘텐츠 제한
+   * 1. 토큰 없음: 프리미엄 아티클의 경우 30%만 제공
+   * 2. 토큰 있음: 구매 여부 확인 후 전체/30% 제공
+   * 3. 토큰이 블랙리스트에 있거나 만료된 경우: 비로그인 사용자로 처리
+   */
+  public ArticleDTO getById(long id, HttpServletRequest request) {
+    return getById(id, request, false);
+  }
+
+  public ArticleDTO getById(long id, HttpServletRequest request, boolean ignoreCache) {
+    Article article = articleRepository.findById(id).orElseThrow(NotFoundException::new);
+
+    log.info("=== Article Detail Processing ===");
+    log.info("Article ID: {}, Title: {}, isPremium: {}, language: {}",
+        article.getId(), article.getTitle(), article.getIsPremium(), article.getLanguage());
+
+    // JWT 토큰에서 사용자 ID 추출 시도 (블랙리스트/만료 확인 포함)
+    Long userId = extractUserIdFromRequest(request);
+    log.info("Extracted userId from token: {}", userId);
+
+    // 콘텐츠 접근 권한 결정
+    boolean isFullContentAvailable = true;
+    boolean hasPremiumAccess = false;
+    String content = article.getContent();
+
+    if (Boolean.TRUE.equals(article.getIsPremium())) {
+      log.info("Article is PREMIUM - checking access rights");
+
+      if (userId == null) {
+        // 토큰이 없거나 유효하지 않은 경우: 30% 미리보기만 제공
+        log.info("No valid authentication - showing preview content (30%)");
+        content = truncateContent(article.getContent());
+        isFullContentAvailable = false;
+        hasPremiumAccess = false;
+      } else {
+        // 유효한 토큰이 있는 경우: 구매 여부 확인
+        boolean hasPurchased = hasPurchasedArticle(userId, id, article.getLanguage(), ignoreCache);
+        log.info("Purchase check result: userId={}, articleId={}, language={}, hasPurchased={}",
+            userId, id, article.getLanguage(), hasPurchased);
+
+        if (hasPurchased) {
+          log.info("User has purchased - showing FULL content");
+          isFullContentAvailable = true;
+          hasPremiumAccess = true;
+        } else {
+          log.info("User has NOT purchased - showing preview content (30%)");
+          content = truncateContent(article.getContent());
+          isFullContentAvailable = false;
+          hasPremiumAccess = false;
+        }
+      }
+    } else {
+      // 일반 아티클: 전체 콘텐츠 제공
+      log.info("Article is NOT premium - showing full content");
+      isFullContentAvailable = true;
+    }
+
+    log.info("Final result: contentLength={}, isFullContentAvailable={}, hasPremiumAccess={}",
+        content.length(), isFullContentAvailable, hasPremiumAccess);
+
+    return ArticleDTO.builder()
+        .id(article.getId())
+        .title(article.getTitle())
+        .content(content)
+        .category(article.getCategory())
+        .language(article.getLanguage())
+        .isPremium(article.getIsPremium())
+        .premiumPrice(article.getPremiumPrice())
+        .createdAt(article.getCreatedAt())
+        .updatedAt(article.getUpdatedAt())
+        .viewCount(article.getViewCount())
+        .slug(article.getSlug())
+        .metaDescription(article.getMetaDescription())
+        .isFullContentAvailable(isFullContentAvailable)
+        .hasPremiumAccess(hasPremiumAccess)
+        .isContentFiltered(!isFullContentAvailable)
+        .build();
+  }
+
+  /**
+   * HTTP 요청에서 JWT 토큰을 통해 사용자 ID 추출
+   * JwtTokenProvider의 기능을 최대한 활용하여 안전하게 사용자 정보 추출
+   * JWT 예외는 GlobalExceptionHandler에서 처리됨
+   */
+  private Long extractUserIdFromRequest(HttpServletRequest request) {
+    // JwtTokenProvider의 resolveToken 메서드 사용
+    String token = jwtTokenProvider.resolveToken(request);
+    log.debug("JWT Token extraction: token present = {}", token != null);
+
+    if (token == null) {
+      log.debug("No JWT Token found in request headers");
+      return null;
+    }
+
+    // JwtTokenProvider의 validateToken 메서드 사용 (블랙리스트 확인 포함)
+    // JWT 관련 예외(ExpiredJwtException, MalformedJwtException 등)는
+    // GlobalExceptionHandler에서 401 응답으로 처리됨
+    boolean isValid = jwtTokenProvider.validateToken(token);
+    log.debug("JWT Token validation result: {}", isValid);
+
+    if (!isValid) {
+      log.debug("JWT Token is invalid or blacklisted");
+      return null;
+    }
+
+    // JwtTokenProvider의 getUserId, getEmail 메서드 사용
+    Long userId = jwtTokenProvider.getUserId(token);
+    String email = jwtTokenProvider.getEmail(token);
+
+    log.debug("Successfully extracted from JWT: userId={}, email={}", userId, email);
+    return userId;
+  }
+
+  /**
+   * 구매 여부 확인 (캐시 활용)
+   */
+  private boolean hasPurchasedArticle(Long userId, Long articleId, String language, boolean ignoreCache) {
+    log.debug("=== Purchase Check Started ===");
+    log.debug("Checking purchase: userId={}, articleId={}, language={}, ignoreCache={}",
+        userId, articleId, language, ignoreCache);
+
+    String cacheKey = PURCHASE_CACHE_PREFIX + userId + ":" + articleId + ":" + language;
+
+    try {
+      if (!ignoreCache) {
+        // 캐시에서 먼저 확인
+        Boolean cachedResult = (Boolean) redisTemplate.opsForValue().get(cacheKey);
+        if (cachedResult != null) {
+          log.debug("CACHE HIT: result={}", cachedResult);
+          return cachedResult;
+        }
+        log.debug("CACHE MISS - checking database");
+      } else {
+        log.debug("IGNORING CACHE - checking database directly");
+      }
+
+      // DB 조회
+      boolean hasPurchased = checkPurchaseFromDatabase(userId, articleId, language);
+
+      // 결과를 캐시에 저장
+      redisTemplate.opsForValue().set(cacheKey, hasPurchased, CACHE_EXPIRE_HOURS, TimeUnit.HOURS);
+      log.debug("Stored in cache: result={}", hasPurchased);
+
+      return hasPurchased;
+
+    } catch (Exception e) {
+      log.error("Redis error during purchase check, falling back to DB: {}", e.getMessage());
+      return checkPurchaseFromDatabase(userId, articleId, language);
+    }
+  }
+
+  private boolean hasPurchasedArticle(Long userId, Long articleId, String language) {
+    return hasPurchasedArticle(userId, articleId, language, false);
+  }
+
+  /**
+   * 데이터베이스에서 구매 여부 확인
+   */
+  private boolean checkPurchaseFromDatabase(Long userId, Long articleId, String language) {
+    log.debug("=== Database Purchase Check ===");
+    log.debug("Query parameters: userId={}, articleId={}, language={}", userId, articleId, language);
+
+    try {
+      List<ArticlePurchase> purchases = articlePurchasesRepository.findByUserId(userId);
+      log.debug("Found {} total purchases for userId: {}", purchases.size(), userId);
+
+      boolean hasPurchased = purchases.stream().anyMatch(purchase -> {
+        boolean articleMatches = false;
+        boolean statusMatches = false;
+
+        // 언어별 아티클 ID 매칭 확인
+        if (LANGUAGE_KO.equals(language)) {
+          articleMatches = articleId.equals(purchase.getArticleIdKo());
+        } else {
+          articleMatches = articleId.equals(purchase.getArticleIdEn());
+        }
+
+        // 결제 상태 확인 (완료 상태들)
+        String paymentStatus = purchase.getPaymentStatus();
+        if (paymentStatus != null) {
+          String normalizedStatus = paymentStatus.trim().toLowerCase();
+          statusMatches = PAYMENT_STATUS_COMPLETED.equals(normalizedStatus) ||
+              PAYMENT_STATUS_COMPLETE.equals(normalizedStatus) ||
+              PAYMENT_STATUS_SUCCESS.equals(normalizedStatus) ||
+              PAYMENT_STATUS_PAID.equals(normalizedStatus);
+        }
+
+        boolean matches = articleMatches && statusMatches;
+        log.debug("Purchase match check: articleMatches={}, statusMatches={}, finalMatch={}",
+            articleMatches, statusMatches, matches);
+
+        return matches;
+      });
+
+      log.debug("=== Final Purchase Result: {} ===", hasPurchased);
+      return hasPurchased;
+
+    } catch (Exception e) {
+      log.error("Error checking purchase from database: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * 콘텐츠를 30%로 제한 (미리보기)
+   */
+  private String truncateContent(String content) {
+    if (content == null || content.isEmpty()) {
+      return content;
+    }
+
+    try {
+      // HTML 태그 제거하여 텍스트만 추출
+      String textOnly = content.replaceAll(HTML_TAG_REGEX, "");
+
+      // 단어 단위로 자르기 (30%)
+      String[] words = textOnly.split(WHITESPACE_REGEX);
+      int targetWordCount = (int) (words.length * PREVIEW_CONTENT_RATIO);
+
+      if (targetWordCount == 0) {
+        targetWordCount = 1;
+      }
+
+      // 원본 HTML에서 단어 단위로 자르기
+      StringBuilder truncated = new StringBuilder();
+      String[] originalWords = content.split(WHITESPACE_REGEX);
+
+      for (int i = 0; i < Math.min(targetWordCount, originalWords.length); i++) {
+        if (i > 0) truncated.append(" ");
+        truncated.append(originalWords[i]);
+      }
+
+      // 말줄임표 추가
+      if (targetWordCount < originalWords.length) {
+        truncated.append(CONTENT_TRUNCATION_SUFFIX);
+      }
+
+      log.debug("Content truncated: original={} chars, truncated={} chars",
+          content.length(), truncated.length());
+
+      return truncated.toString();
+    } catch (Exception e) {
+      log.error("Error truncating content: {}", e.getMessage());
+      return content;
+    }
+  }
+
+  // 캐시 관리 메서드들
+  public void clearPurchaseCache(Long userId, Long articleId, String language) {
+    String cacheKey = PURCHASE_CACHE_PREFIX + userId + ":" + articleId + ":" + language;
+    try {
+      Boolean deleted = redisTemplate.delete(cacheKey);
+      log.info("Cache cleared: key={}, deleted={}", cacheKey, deleted);
+    } catch (Exception e) {
+      log.error("Failed to clear cache: {}", e.getMessage());
+    }
+  }
+
+  public void clearAllPurchaseCacheForUser(Long userId) {
+    try {
+      String pattern = PURCHASE_CACHE_PREFIX + userId + ":*";
+      var keys = redisTemplate.keys(pattern);
+      if (keys != null && !keys.isEmpty()) {
+        Long deletedCount = redisTemplate.delete(keys);
+        log.info("Cleared {} cache entries for userId: {}", deletedCount, userId);
+      }
+    } catch (Exception e) {
+      log.error("Failed to clear all purchase cache for user {}: {}", userId, e.getMessage());
+    }
+  }
+
+  public void invalidatePurchaseCache(Long userId, Long articleIdKo, Long articleIdEn) {
+    try {
+      if (articleIdKo != null) {
+        String cacheKeyKo = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdKo + ":" + LANGUAGE_KO;
+        redisTemplate.delete(cacheKeyKo);
+      }
+      if (articleIdEn != null) {
+        String cacheKeyEn = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdEn + ":" + LANGUAGE_EN;
+        redisTemplate.delete(cacheKeyEn);
+      }
+      log.info("Purchase cache invalidated for userId: {}", userId);
+    } catch (Exception e) {
+      log.error("Failed to invalidate purchase cache: {}", e.getMessage());
+    }
+  }
+
+  // 기존 메서드들...
+  /**
+   * 특정 사용자와 아티클의 구매 정보 조회
+   */
+  public ArticlePurchaseDTO getPurchaseByUserAndArticle(Long userId, Long articleId) {
+    log.info("구매 정보 조회 - userId: {}, articleId: {}", userId, articleId);
+
+    // 한국어와 영어 아티클 모두에서 검색
+    List<ArticlePurchase> purchases = articlePurchasesRepository.findByUserId(userId);
+
+    Optional<ArticlePurchase> purchase = purchases.stream()
+        .filter(p -> {
+          // 한국어 또는 영어 아티클 ID가 일치하는지 확인
+          boolean matchesKo = articleId.equals(p.getArticleIdKo());
+          boolean matchesEn = articleId.equals(p.getArticleIdEn());
+
+          // 결제 완료 상태인지 확인
+          boolean isCompleted = PAYMENT_STATUS_COMPLETED.equals(p.getPaymentStatus()) ||
+              PAYMENT_STATUS_COMPLETE.equals(p.getPaymentStatus()) ||
+              PAYMENT_STATUS_SUCCESS.equals(p.getPaymentStatus()) ||
+              PAYMENT_STATUS_PAID.equals(p.getPaymentStatus());
+
+          return (matchesKo || matchesEn) && isCompleted;
+        })
+        .findFirst();
+
+    if (purchase.isPresent()) {
+      log.info("구매 정보 찾음 - purchaseId: {}", purchase.get().getId());
+      return convertToDTO(purchase.get());
+    } else {
+      log.warn("구매 정보를 찾을 수 없음 - userId: {}, articleId: {}", userId, articleId);
+      throw new NotFoundException();
+    }
+  }
+
+  /**
+   * 특정 언어의 구매 정보 조회 (언어별 조회)
+   */
+  public ArticlePurchaseDTO getPurchaseByUserAndArticle(Long userId, Long articleId, String language) {
+    log.info("구매 정보 조회 (언어별) - userId: {}, articleId: {}, language: {}", userId, articleId, language);
+
+    Optional<ArticlePurchase> purchase;
+
+    if (LANGUAGE_KO.equals(language)) {
+      purchase = articlePurchasesRepository.findByUserIdAndArticleIdKoAndCompleted(userId, articleId);
+    } else {
+      purchase = articlePurchasesRepository.findByUserIdAndArticleIdEnAndCompleted(userId, articleId);
+    }
+
+    if (purchase.isPresent()) {
+      log.info("구매 정보 찾음 - purchaseId: {}", purchase.get().getId());
+      return convertToDTO(purchase.get());
+    } else {
+      log.warn("구매 정보를 찾을 수 없음 - userId: {}, articleId: {}, language: {}", userId, articleId, language);
+      throw new NotFoundException();
+    }
+  }
+
+  /**
    * 프리미엄 아티클 구매 처리 (가격 필드 사용)
    */
   public ArticlePurchaseDTO purchaseArticle(
@@ -89,75 +435,13 @@ public class ArticleService {
     // 6. 데이터베이스에 저장
     ArticlePurchase savedPurchase = articlePurchasesRepository.save(newPurchase);
 
+    // 7. 캐시 무효화
+    clearPurchaseCache(userId, articleId, language);
+
     log.info("프리미엄 아티클 구매 완료. userId: {}, articleId: {}, price: {}, paymentKey: {}",
         userId, articleId, article.getPremiumPrice(), paymentKey);
 
     return convertToDTO(savedPurchase);
-  }
-
-  /**
-   * 아티클 DTO 변환 시 프리미엄 정보 포함
-   */
-  private ArticleDTO convertToDTO(Article article, Long userId, String language) {
-    ArticleDTO.ArticleDTOBuilder builder = ArticleDTO.builder()
-        .id(article.getId())
-        .title(article.getTitle())
-        .content(article.getContent())
-        .category(article.getCategory())
-        .language(article.getLanguage())
-        .isPremium(article.getIsPremium())
-        .premiumPrice(article.getPremiumPrice()) // 가격 정보 포함
-        .createdAt(article.getCreatedAt())
-        .updatedAt(article.getUpdatedAt())
-        .viewCount(article.getViewCount())
-        .slug(article.getSlug())
-        .metaDescription(article.getMetaDescription());
-
-    // 프리미엄 아티클인 경우 접근 권한 확인
-    if (Boolean.TRUE.equals(article.getIsPremium()) && userId != null) {
-      boolean hasAccess = hasPremiumAccess(userId, article.getId(), language);
-      builder.hasPremiumAccess(hasAccess);
-
-      // 접근 권한이 없으면 콘텐츠 일부만 제공
-      if (!hasAccess) {
-        String filteredContent = applyContentFilter(article.getContent());
-        builder.content(filteredContent)
-            .isContentFiltered(true)
-            .isFullContentAvailable(false);
-      } else {
-        builder.isFullContentAvailable(true);
-      }
-    } else if (Boolean.TRUE.equals(article.getIsPremium())) {
-      // 비로그인 사용자는 프리미엄 콘텐츠 일부만 제공
-      String filteredContent = applyContentFilter(article.getContent());
-      builder.content(filteredContent)
-          .hasPremiumAccess(false)
-          .isContentFiltered(true)
-          .isFullContentAvailable(false);
-    } else {
-      builder.isFullContentAvailable(true);
-    }
-
-    return builder.build();
-  }
-
-  /**
-   * 프리미엄 콘텐츠 필터링 (30%만 제공)
-   */
-  private String applyContentFilter(String content) {
-    if (content == null || content.isEmpty()) {
-      return content;
-    }
-
-    int previewLength = (int) (content.length() * PREVIEW_CONTENT_RATIO); // 30%만 제공
-    String filteredContent = content.substring(0, Math.min(previewLength, content.length()));
-
-    // 마지막에 "..." 추가하여 더 있다는 것을 표시
-    if (previewLength < content.length()) {
-      filteredContent += CONTENT_TRUNCATION_SUFFIX;
-    }
-
-    return filteredContent;
   }
 
   /**
@@ -204,266 +488,6 @@ public class ArticleService {
         .build();
   }
 
-  public ArticleDTO getById(long id, HttpServletRequest request) {
-    return getById(id, request, false); // 기본적으로 캐시 사용
-  }
-
-  public ArticleDTO getById(long id, HttpServletRequest request, boolean ignoreCache) {
-    Article article = articleRepository.findById(id).orElseThrow(NotFoundException::new);
-
-    log.info("=== Article Detail Processing ===");
-    log.info("Article ID: {}, Title: {}, isPremium: {}, language: {}, ignoreCache: {}",
-        article.getId(), article.getTitle(), article.getIsPremium(), article.getLanguage(), ignoreCache);
-
-    // 사용자 ID 추출
-    Long userId = extractUserIdFromRequest(request);
-    log.info("Extracted userId from token: {}", userId);
-
-    // 프리미엄 아티클인지 확인
-    boolean isFullContentAvailable = true;
-    String content = article.getContent();
-
-    if (Boolean.TRUE.equals(article.getIsPremium())) {
-      log.info("Article is PREMIUM - checking purchase status");
-
-      if (userId == null) {
-        log.info("User not authenticated - showing preview content");
-        content = truncateContent(article.getContent());
-        isFullContentAvailable = false;
-      } else {
-        boolean hasPurchased = hasPurchasedArticle(userId, id, article.getLanguage(), ignoreCache);
-        log.info("Purchase check result: userId={}, articleId={}, language={}, hasPurchased={}",
-            userId, id, article.getLanguage(), hasPurchased);
-
-        if (!hasPurchased) {
-          log.info("User has NOT purchased - showing preview content");
-          content = truncateContent(article.getContent());
-          isFullContentAvailable = false;
-        } else {
-          log.info("User has purchased - showing FULL content");
-        }
-      }
-    } else {
-      log.info("Article is NOT premium - showing full content");
-    }
-
-    log.info("Final content length: {}, isFullContentAvailable: {}",
-        content.length(), isFullContentAvailable);
-
-    return ArticleDTO.builder()
-        .id(article.getId())
-        .title(article.getTitle())
-        .content(content)
-        .category(article.getCategory())
-        .language(article.getLanguage())
-        .isPremium(article.getIsPremium())
-        .createdAt(article.getCreatedAt())
-        .updatedAt(article.getUpdatedAt())
-        .viewCount(article.getViewCount())
-        .slug(article.getSlug())
-        .metaDescription(article.getMetaDescription())
-        .isFullContentAvailable(isFullContentAvailable)
-        .build();
-  }
-
-  private Long extractUserIdFromRequest(HttpServletRequest request) {
-    try {
-      String token = jwtTokenProvider.resolveToken(request);
-      log.info("JWT Token extraction: token present = {}", token != null);
-
-      if (token != null) {
-        log.info("JWT Token (first 20 chars): {}", token.substring(0, Math.min(20, token.length())));
-
-        boolean isValid = jwtTokenProvider.validateToken(token);
-        log.info("JWT Token validation result: {}", isValid);
-
-        if (isValid) {
-          Long userId = jwtTokenProvider.getUserId(token);
-          String email = jwtTokenProvider.getEmail(token);
-          log.info("Successfully extracted from JWT: userId={}, email={}", userId, email);
-          return userId;
-        } else {
-          log.warn("JWT Token is invalid");
-        }
-      } else {
-        log.info("No JWT Token found in request");
-      }
-    } catch (Exception e) {
-      log.error("Failed to extract user ID from token: {}", e.getMessage(), e);
-    }
-    return null;
-  }
-
-  /**
-   * 구매 여부 확인 (캐시 무시 옵션 추가)
-   */
-  private boolean hasPurchasedArticle(Long userId, Long articleId, String language, boolean ignoreCache) {
-    log.info("=== Purchase Check Started ===");
-    log.info("Checking purchase: userId={}, articleId={}, language={}, ignoreCache={}",
-        userId, articleId, language, ignoreCache);
-
-    String cacheKey = PURCHASE_CACHE_PREFIX + userId + ":" + articleId + ":" + language;
-    log.info("Cache key: {}", cacheKey);
-
-    try {
-      if (!ignoreCache) {
-        // 캐시에서 먼저 확인
-        Boolean cachedResult = (Boolean) redisTemplate.opsForValue().get(cacheKey);
-        if (cachedResult != null) {
-          log.info("CACHE HIT: result={}", cachedResult);
-          return cachedResult;
-        }
-        log.info("CACHE MISS - checking database");
-      } else {
-        log.info("IGNORING CACHE - checking database directly");
-      }
-
-      // DB 조회
-      boolean hasPurchased = checkPurchaseFromDatabase(userId, articleId, language);
-
-      // 결과를 캐시에 저장
-      redisTemplate.opsForValue().set(cacheKey, hasPurchased, CACHE_EXPIRE_HOURS, TimeUnit.HOURS);
-      log.info("Stored in cache: result={}", hasPurchased);
-
-      return hasPurchased;
-
-    } catch (Exception e) {
-      log.error("Redis error during purchase check, falling back to DB: {}", e.getMessage(), e);
-      return checkPurchaseFromDatabase(userId, articleId, language);
-    }
-  }
-
-  // 기존 메서드 오버로드
-  private boolean hasPurchasedArticle(Long userId, Long articleId, String language) {
-    return hasPurchasedArticle(userId, articleId, language, false);
-  }
-
-  // 개선된 구매 확인 로직
-  private boolean checkPurchaseFromDatabase(Long userId, Long articleId, String language) {
-    log.info("=== Database Purchase Check ===");
-    log.info("Query parameters: userId={}, articleId={}, language={}", userId, articleId, language);
-
-    try {
-      List<ArticlePurchase> purchases = articlePurchasesRepository.findByUserId(userId);
-      log.info("Found {} total purchases for userId: {}", purchases.size(), userId);
-
-      // 모든 구매 내역 상세 로깅
-      for (int i = 0; i < purchases.size(); i++) {
-        ArticlePurchase purchase = purchases.get(i);
-        log.info("Purchase {}: id={}, articleIdKo={}, articleIdEn={}, paymentStatus='{}' (trimmed='{}')",
-            i + 1, purchase.getId(), purchase.getArticleIdKo(),
-            purchase.getArticleIdEn(), purchase.getPaymentStatus(),
-            purchase.getPaymentStatus() != null ? purchase.getPaymentStatus().trim() : "null");
-      }
-
-      boolean hasPurchased = purchases.stream().anyMatch(purchase -> {
-        boolean articleMatches = false;
-        boolean statusMatches = false;
-        Long targetArticleId = null;
-
-        // 아티클 ID 매칭 확인
-        if (LANGUAGE_KO.equals(language)) {
-          targetArticleId = purchase.getArticleIdKo();
-          articleMatches = articleId.equals(targetArticleId);
-        } else {
-          targetArticleId = purchase.getArticleIdEn();
-          articleMatches = articleId.equals(targetArticleId);
-        }
-
-        // 결제 상태 확인 (대소문자 무시, 공백 제거)
-        String paymentStatus = purchase.getPaymentStatus();
-        if (paymentStatus != null) {
-          String normalizedStatus = paymentStatus.trim().toLowerCase();
-          // 다양한 완료 상태 허용
-          statusMatches = PAYMENT_STATUS_COMPLETED.equals(normalizedStatus) ||
-              PAYMENT_STATUS_COMPLETE.equals(normalizedStatus) ||
-              PAYMENT_STATUS_SUCCESS.equals(normalizedStatus) ||
-              PAYMENT_STATUS_PAID.equals(normalizedStatus);
-
-          log.info("Payment status check: original='{}', normalized='{}', matches={}",
-              paymentStatus, normalizedStatus, statusMatches);
-        } else {
-          log.info("Payment status is null");
-        }
-
-        boolean matches = articleMatches && statusMatches;
-
-        log.info("Purchase match check: targetArticleId={} ({}), requestedArticleId={}, " +
-                "articleMatches={}, statusMatches={}, finalMatch={}",
-            targetArticleId, language, articleId, articleMatches, statusMatches, matches);
-
-        return matches;
-      });
-
-      log.info("=== Final Purchase Result: {} ===", hasPurchased);
-      return hasPurchased;
-
-    } catch (Exception e) {
-      log.error("Error checking purchase from database: {}", e.getMessage(), e);
-      return false;
-    }
-  }
-
-  // 캐시 무효화 유틸리티 메서드 추가
-  public void clearPurchaseCache(Long userId, Long articleId, String language) {
-    String cacheKey = PURCHASE_CACHE_PREFIX + userId + ":" + articleId + ":" + language;
-    try {
-      Boolean deleted = redisTemplate.delete(cacheKey);
-      log.info("Cache cleared: key={}, deleted={}", cacheKey, deleted);
-    } catch (Exception e) {
-      log.error("Failed to clear cache: {}", e.getMessage());
-    }
-  }
-
-  // 모든 사용자 구매 캐시 무효화
-  public void clearAllPurchaseCacheForUser(Long userId) {
-    try {
-      String pattern = PURCHASE_CACHE_PREFIX + userId + ":*";
-      var keys = redisTemplate.keys(pattern);
-      if (keys != null && !keys.isEmpty()) {
-        Long deletedCount = redisTemplate.delete(keys);
-        log.info("Cleared {} cache entries for userId: {}", deletedCount, userId);
-      }
-    } catch (Exception e) {
-      log.error("Failed to clear all purchase cache for user {}: {}", userId, e.getMessage());
-    }
-  }
-
-  private String truncateContent(String content) {
-    if (content == null || content.isEmpty()) {
-      return content;
-    }
-
-    try {
-      String textOnly = content.replaceAll(HTML_TAG_REGEX, "");
-      int targetLength = (int) (textOnly.length() * PREVIEW_CONTENT_RATIO);
-
-      String[] words = textOnly.split(WHITESPACE_REGEX);
-      int targetWordCount = (int) (words.length * PREVIEW_CONTENT_RATIO);
-
-      if (targetWordCount == 0) {
-        targetWordCount = 1;
-      }
-
-      StringBuilder truncated = new StringBuilder();
-      String[] originalWords = content.split(WHITESPACE_REGEX);
-
-      for (int i = 0; i < Math.min(targetWordCount, originalWords.length); i++) {
-        if (i > 0) truncated.append(" ");
-        truncated.append(originalWords[i]);
-      }
-
-      log.info("Content truncated: original={} chars, truncated={} chars",
-          content.length(), truncated.length());
-
-      return truncated.toString();
-    } catch (Exception e) {
-      log.error("Error truncating content: {}", e.getMessage());
-      return content;
-    }
-  }
-
-  // 기존 메서드들...
   public List<ArticleDTO> getByLanguage(String language) {
     List<Article> articles = articleRepository.findByLanguage(language);
 
@@ -491,14 +515,14 @@ public class ArticleService {
   @Transactional
   public Integer incrementViewCount(Long id) {
     Article article = articleRepository.findById(id)
-        .orElseThrow(() -> new EntityNotFoundException("Article not found"));
+        .orElseThrow(NotFoundException::new);
     article.incrementViewCount();
     return article.getViewCount();
   }
 
   public Integer getCurrentViewCount(Long articleId) {
     Article article = articleRepository.findById(articleId)
-        .orElseThrow(() -> new EntityNotFoundException("Article not found"));
+        .orElseThrow(NotFoundException::new);
     return article.getViewCount();
   }
 
@@ -527,46 +551,58 @@ public class ArticleService {
   }
 
   public List<ArticlePurchaseDTO> getPurchasesByLanguage(Long userId, String language) {
+    log.info("getPurchasesByLanguage 호출 - userId: {}, language: {}", userId, language);
+
     List<ArticlePurchase> articlePurchases = articlePurchasesRepository.findByUserId(userId);
+    log.info("찾은 구매 내역 수: {}", articlePurchases.size());
+
     List<ArticlePurchaseDTO> articlePurchasesDTO = new ArrayList<>();
 
-    for(ArticlePurchase articlePurchase: articlePurchases) {
-      Article article;
-      if(LANGUAGE_KO.equals(language))
-        article = articleRepository.findById(articlePurchase.getArticleIdKo())
-            .orElseThrow(NotFoundException::new);
-      else
-        article = articleRepository.findById(articlePurchase.getArticleIdEn())
-            .orElseThrow(NotFoundException::new);
+    for(int i = 0; i < articlePurchases.size(); i++) {
+      ArticlePurchase articlePurchase = articlePurchases.get(i);
+
+      log.info("구매 내역 {}: id={}, articleIdKo={}, articleIdEn={}",
+          i+1, articlePurchase.getId(),
+          articlePurchase.getArticleIdKo(),
+          articlePurchase.getArticleIdEn());
+
+      Long articleId = null;
+      if(LANGUAGE_KO.equals(language)) {
+        articleId = articlePurchase.getArticleIdKo();
+      } else {
+        articleId = articlePurchase.getArticleIdEn();
+      }
+
+      log.info("선택된 articleId: {} (language: {})", articleId, language);
+
+      if (articleId == null) {
+        log.warn("Article ID가 null입니다. 구매 건 스킵: {}", articlePurchase.getId());
+        continue;
+      }
+
+      Article article = articleRepository.findById(articleId)
+          .orElseThrow(NotFoundException::new);
 
       ArticlePurchaseDTO articlePurchaseDTO = ArticlePurchaseDTO.builder()
           .id(articlePurchase.getId())
+          .userId(articlePurchase.getUserId())
+          .articleIdKo(articlePurchase.getArticleIdKo())
+          .articleIdEn(articlePurchase.getArticleIdEn())
           .purchaseDate(articlePurchase.getPurchaseDate())
           .purchasePrice(articlePurchase.getPurchasePrice())
           .paymentStatus(articlePurchase.getPaymentStatus())
-          .createdAt(article.getCreatedAt())
-          .updatedAt(article.getUpdatedAt())
+          .paymentKey(articlePurchase.getPaymentKey())
+          .orderId(articlePurchase.getOrderId())
+          .paymentMethod(articlePurchase.getPaymentMethod())
+          .approvedAt(articlePurchase.getApprovedAt())
+          .createdAt(articlePurchase.getCreatedAt())
+          .updatedAt(articlePurchase.getUpdatedAt())
           .build();
 
       articlePurchasesDTO.add(articlePurchaseDTO);
     }
 
+    log.info("반환할 구매 내역 수: {}", articlePurchasesDTO.size());
     return articlePurchasesDTO;
-  }
-
-  public void invalidatePurchaseCache(Long userId, Long articleIdKo, Long articleIdEn) {
-    try {
-      if (articleIdKo != null) {
-        String cacheKeyKo = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdKo + ":" + LANGUAGE_KO;
-        redisTemplate.delete(cacheKeyKo);
-      }
-      if (articleIdEn != null) {
-        String cacheKeyEn = PURCHASE_CACHE_PREFIX + userId + ":" + articleIdEn + ":" + LANGUAGE_EN;
-        redisTemplate.delete(cacheKeyEn);
-      }
-      log.info("Purchase cache invalidated for userId: {}", userId);
-    } catch (Exception e) {
-      log.error("Failed to invalidate purchase cache: {}", e.getMessage());
-    }
   }
 }

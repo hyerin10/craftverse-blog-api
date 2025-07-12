@@ -10,6 +10,7 @@ import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedEx
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentCancelRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentConfirmRequestDTO;
+import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.security.TossWebhookSecurityValidator;
 import kr.co.craftverse.craftverse_blog_api.service.TossPaymentService;
@@ -32,7 +33,36 @@ public class PaymentController {
 
   private final TossPaymentService tossPaymentService;
   private final JwtTokenProvider jwtTokenProvider;
-  private final TossWebhookSecurityValidator securityValidator;
+
+  // PaymentController.java에 추가할 메서드
+
+  /**
+   * 결제 요청 생성 (프론트엔드에서 결제 시작 전에 호출)
+   */
+  @PostMapping("/payment")
+  public RestResult<Map<String, Object>> createPayment(
+      @Valid @RequestBody PaymentRequestDTO requestDTO,
+      HttpServletRequest request) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+    Long userId = getUserIdFromToken(request);
+
+    try {
+      PaymentResponseDTO payment = tossPaymentService.createPayment(requestDTO, userId);
+
+      data.put("payment", payment);
+      data.put("orderId", payment.getOrderId());
+      data.put("amount", payment.getAmount());
+      data.put("message", "결제 요청이 생성되었습니다.");
+
+      return new RestResult<>(data);
+
+    } catch (Exception e) {
+      log.error("결제 요청 생성 실패", e);
+      data.put("message", "결제 요청 생성에 실패했습니다: " + e.getMessage());
+      throw new RuntimeException("결제 요청 생성에 실패했습니다: " + e.getMessage());
+    }
+  }
 
   /**
    * 토큰에서 사용자 ID 추출 (공통 메서드)

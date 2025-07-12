@@ -120,17 +120,24 @@ public class TossPaymentService {
   /**
    * 결제 승인 처리 (개선된 버전)
    */
+  // TossPaymentService.java의 confirmPayment 메서드 수정
   @Transactional
   public PaymentResponseDTO confirmPayment(PaymentConfirmRequestDTO confirmDTO, Long userId) throws Exception {
     log.info("결제 승인 시작 - orderId: {}, userId: {}, amount: {}",
         confirmDTO.getOrderId(), userId, confirmDTO.getAmount());
 
-    // DB에서 결제 정보 조회
-    Payment payment = paymentRepository.findByOrderIdAndUserId(confirmDTO.getOrderId(), userId)
+    // DB에서 결제 정보 조회 (비관적 락 사용)
+    Payment payment = paymentRepository.findByOrderIdAndUserIdForUpdate(confirmDTO.getOrderId(), userId)
         .orElseThrow(() -> {
           log.error("결제 정보 없음 - orderId: {}, userId: {}", confirmDTO.getOrderId(), userId);
           return new PaymentNotFoundException("결제 정보를 찾을 수 없습니다.");
         });
+
+    // 이미 승인된 결제인지 확인
+    if (payment.getStatus() == Payment.PaymentStatus.DONE) {
+      log.info("이미 승인된 결제 - orderId: {}, status: {}", confirmDTO.getOrderId(), payment.getStatus());
+      return PaymentResponseDTO.from(payment);
+    }
 
     // 결제 상태 검증
     if (payment.getStatus() != Payment.PaymentStatus.READY) {
@@ -139,14 +146,20 @@ public class TossPaymentService {
     }
 
     // 금액 검증
-    if (!payment.getAmount().equals(confirmDTO.getAmount())) {
+    log.info("💰 금액 검증 시작:");
+    log.info("💰 DB 저장된 금액: {} (타입: {})", payment.getAmount(), payment.getAmount().getClass().getSimpleName());
+    log.info("💰 요청된 금액: {} (타입: {})", confirmDTO.getAmount(), confirmDTO.getAmount().getClass().getSimpleName());
+    log.info("💰 equals() 결과: {}", payment.getAmount().equals(confirmDTO.getAmount()));
+    log.info("💰 compareTo() 결과: {}", payment.getAmount().compareTo(confirmDTO.getAmount()));
+
+    if (payment.getAmount().compareTo(confirmDTO.getAmount()) != 0) {
       log.error("결제 금액 불일치 - orderId: {}, expected: {}, actual: {}",
           confirmDTO.getOrderId(), payment.getAmount(), confirmDTO.getAmount());
       throw new PaymentAmountMismatchException("결제 금액이 일치하지 않습니다.");
     }
 
-    // 토스페이먼츠 API 호출
     try {
+      // 토스페이먼츠 API 호출
       String tossResponse = callTossConfirmAPI(confirmDTO);
       JsonNode jsonNode = objectMapper.readTree(tossResponse);
 
@@ -162,12 +175,30 @@ public class TossPaymentService {
       return PaymentResponseDTO.from(savedPayment);
 
     } catch (HttpClientErrorException e) {
-      // 토스 API 에러 처리
+      String responseBody = e.getResponseBodyAsString();
+      log.error("토스 API 에러 - orderId: {}, status: {}, response: {}",
+          confirmDTO.getOrderId(), e.getStatusCode(), responseBody);
+
+      // S008 에러 (기존 요청 처리중)인 경우 결제 상태 재확인
+      if (responseBody.contains("S008") || responseBody.contains("기존 요청을 처리중")) {
+        log.info("기존 요청 처리중 에러 - 결제 상태 재확인: {}", confirmDTO.getOrderId());
+
+        // 잠시 대기 후 결제 상태 재조회
+        Thread.sleep(1000);
+        Payment updatedPayment = paymentRepository.findByOrderIdAndUserId(confirmDTO.getOrderId(), userId)
+            .orElse(payment);
+
+        if (updatedPayment.getStatus() == Payment.PaymentStatus.DONE) {
+          log.info("다른 요청에 의해 결제 완료됨 - orderId: {}", confirmDTO.getOrderId());
+          return PaymentResponseDTO.from(updatedPayment);
+        }
+      }
+
+      // 일반적인 에러 처리
       handleTossAPIError(payment, e);
-      throw new TossPaymentException("토스페이먼츠 승인 실패: " + e.getResponseBodyAsString());
+      throw new TossPaymentException("토스페이먼츠 승인 실패: " + responseBody);
 
     } catch (Exception e) {
-      // 기타 예외 처리
       payment.abort();
       paymentRepository.save(payment);
       log.error("결제 승인 실패 - orderId: {}", confirmDTO.getOrderId(), e);

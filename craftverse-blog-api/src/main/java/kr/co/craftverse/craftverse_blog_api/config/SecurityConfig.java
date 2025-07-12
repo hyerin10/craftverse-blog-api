@@ -1,20 +1,21 @@
 package kr.co.craftverse.craftverse_blog_api.config;
 
+import java.util.Arrays;
 import kr.co.craftverse.craftverse_blog_api.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -28,20 +29,47 @@ public class SecurityConfig {
   }
 
   @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration configuration = new CorsConfiguration();
+
+    // 허용할 오리진 설정
+    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+
+    // 허용할 HTTP 메서드 설정 (OPTIONS 포함 필수)
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+    // 허용할 헤더 설정
+    configuration.setAllowedHeaders(Arrays.asList("*"));
+
+    // 인증 정보(쿠키, Authorization 헤더 등) 허용
+    configuration.setAllowCredentials(true);
+
+    // preflight 요청 캐시 시간 설정
+    configuration.setMaxAge(3600L);
+
+    // 노출할 헤더 설정 (필요한 경우)
+    configuration.setExposedHeaders(Arrays.asList("Authorization", "X-Total-Count"));
+
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", configuration);
+
+    return source;
+  }
+
+  @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     http
-        .cors(Customizer.withDefaults())
-        .csrf(csrf -> csrf
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-        )
+        // CORS 설정을 맨 앞에 배치
+        .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+        .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/payments/webhook", "/article/purchases", "/article/purchase", "/sitemap.xml", "/auth/csrf", "/auth/user", "/auth/user/oauth", "/auth/login", "/auth/logout", "/auth/me", "/auth/verify-email", "/auth/resend-verification", "/auth/google/url","/auth/google/callback", "/auth/google/callback/**", "/oauth2/**", "/auth/google/login", "/auth/refresh").permitAll()
-            .requestMatchers("/auth/password-reset/reset", "/auth/password-reset/verify-code", "/auth/password-reset/send-code").permitAll()
-            .requestMatchers("/article/*/views").permitAll()
+            .requestMatchers("/payments/**").permitAll() // 결제 관련 모든 엔드포인트 허용
+            .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/article/**").permitAll()
-            .requestMatchers("/articles").permitAll()
+            .requestMatchers("/articles/**").permitAll()
+            .requestMatchers("/sitemap.xml").permitAll()
             .requestMatchers("/", "/home", "/about").permitAll()
             .anyRequest().authenticated()
         )
