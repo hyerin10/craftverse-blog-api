@@ -1,14 +1,27 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
-import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.*;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CACHE_EXPIRE_HOURS;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CONTENT_TRUNCATION_SUFFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.HTML_TAG_REGEX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.LANGUAGE_EN;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.LANGUAGE_KO;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_METHOD_CARD;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_COMPLETE;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_COMPLETED;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_PAID;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PAYMENT_STATUS_SUCCESS;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PREVIEW_CONTENT_RATIO;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.PURCHASE_CACHE_PREFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.WHITESPACE_REGEX;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
@@ -17,8 +30,10 @@ import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.Article;
 import kr.co.craftverse.craftverse_blog_api.model.entity.ArticlePurchase;
+import kr.co.craftverse.craftverse_blog_api.model.entity.ArticleTranslation;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticlePurchasesRepository;
 import kr.co.craftverse.craftverse_blog_api.repository.ArticleRepository;
+import kr.co.craftverse.craftverse_blog_api.repository.ArticleTranslationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
@@ -33,6 +48,7 @@ public class ArticleService {
   private final ArticlePurchasesRepository articlePurchasesRepository;
   private final RedisTemplate<String, Object> redisTemplate;
   private final JwtTokenProvider jwtTokenProvider;
+  private final ArticleTranslationRepository articleTranslationRepository;
 
   /**
    * 아티클 단건 조회 - 토큰 여부에 따라 콘텐츠 제한
@@ -416,6 +432,9 @@ public class ArticleService {
     // 5. 새로운 구매 기록 생성
     long currentTimestamp = System.currentTimeMillis();
 
+    // 한/영 아티클 id 찾아서 같이 전달
+    ArticleIds articleIds = findAllRelatedArticleIds(articleId);
+
     ArticlePurchase newPurchase = ArticlePurchase.builder()
         .userId(userId)
         .paymentKey(paymentKey)
@@ -429,19 +448,145 @@ public class ArticleService {
         .updatedAt(currentTimestamp)
         .build();
 
-    // 언어별 아티클 ID 설정
-    newPurchase.setArticleIdByLanguage(language, articleId);
+    // 언어별 아티클 ID 설정 (한/영 모두 설정)
+    setAllArticleIds(newPurchase, articleIds);
 
     // 6. 데이터베이스에 저장
     ArticlePurchase savedPurchase = articlePurchasesRepository.save(newPurchase);
 
-    // 7. 캐시 무효화
-    clearPurchaseCache(userId, articleId, language);
+    // 7. 캐시 무효화 (모든 관련 언어에 대해)
+    clearPurchaseCacheForAllLanguages(userId, articleIds);
 
-    log.info("프리미엄 아티클 구매 완료. userId: {}, articleId: {}, price: {}, paymentKey: {}",
-        userId, articleId, article.getPremiumPrice(), paymentKey);
+    log.info("프리미엄 아티클 구매 완료. userId: {}, articleId: {}, price: {}, paymentKey: {}, relatedIds: {}",
+        userId, articleId, article.getPremiumPrice(), paymentKey, articleIds);
 
     return convertToDTO(savedPurchase);
+  }
+
+  /**
+   * 주어진 아티클 ID와 연관된 모든 아티클 ID를 찾는 메서드
+   */
+  private ArticleIds findAllRelatedArticleIds(Long articleId) {
+    // 1. 현재 아티클과 연관된 모든 번역 관계 찾기
+    List<ArticleTranslation> translations = articleTranslationRepository.findAllTranslationsByArticleId(articleId);
+
+    ArticleIds articleIds = new ArticleIds();
+
+    // 2. 번역 관계가 없는 경우 (단일 언어 아티클)
+    if (translations.isEmpty()) {
+      // 아티클의 언어를 확인하여 적절한 필드에 설정
+      Article article = articleRepository.findById(articleId).orElse(null);
+      if (article != null) {
+        String articleLanguage = determineArticleLanguage(article);
+        if ("ko".equals(articleLanguage)) {
+          articleIds.assignKoreanId(articleId);
+        } else if ("en".equals(articleLanguage)) {
+          articleIds.assignEnglishId(articleId);
+        }
+      }
+      return articleIds;
+    }
+
+    // 3. 번역 관계가 있는 경우 모든 관련 ID 수집
+    Set<Long> allRelatedIds = new HashSet<>();
+    allRelatedIds.add(articleId);
+
+    for (ArticleTranslation translation : translations) {
+      allRelatedIds.add(translation.getOriginalArticleId());
+      allRelatedIds.add(translation.getTranslatedArticleId());
+    }
+
+    // 4. 각 ID의 언어를 확인하여 분류
+    for (Long id : allRelatedIds) {
+      Article article = articleRepository.findById(id).orElse(null);
+      if (article != null) {
+        String language = determineArticleLanguage(article);
+        if ("ko".equals(language)) {
+          articleIds.assignKoreanId(id);
+        } else if ("en".equals(language)) {
+          articleIds.assignEnglishId(id);
+        }
+      }
+    }
+
+    return articleIds;
+  }
+
+  /**
+   * 아티클의 언어를 결정하는 메서드
+   */
+  private String determineArticleLanguage(Article article) {
+    // 방법 1: Article 엔티티에 language 필드가 있는 경우
+    if (article.getLanguage() != null) {
+      return article.getLanguage();
+    }
+
+    // 방법 2: 제목이나 내용으로 언어 감지 (간단한 방법)
+    String title = article.getTitle();
+    if (title != null) {
+      // 한글 문자 포함 여부로 판단
+      if (title.matches(".*[가-힣].*")) {
+        return "ko";
+      }
+      // 영어로 가정
+      return "en";
+    }
+
+    // 기본값
+    return "ko";
+  }
+
+  /**
+   * ArticlePurchase 엔티티에 모든 언어의 아티클 ID 설정
+   */
+  private void setAllArticleIds(ArticlePurchase purchase, ArticleIds articleIds) {
+    if (articleIds.getKoreanId() != null) {
+      purchase.setArticleIdKo(articleIds.getKoreanId());
+    }
+    if (articleIds.getEnglishId() != null) {
+      purchase.setArticleIdEn(articleIds.getEnglishId());
+    }
+  }
+
+  /**
+   * 모든 관련 언어에 대해 캐시 무효화
+   */
+  private void clearPurchaseCacheForAllLanguages(Long userId, ArticleIds articleIds) {
+    if (articleIds.getKoreanId() != null) {
+      clearPurchaseCache(userId, articleIds.getKoreanId(), "ko");
+    }
+    if (articleIds.getEnglishId() != null) {
+      clearPurchaseCache(userId, articleIds.getEnglishId(), "en");
+    }
+  }
+
+  /**
+   * 아티클 ID들을 담는 내부 클래스
+   */
+  private static class ArticleIds {
+    private Long koreanId;
+    private Long englishId;
+
+    public Long getKoreanId() {
+      return koreanId;
+    }
+
+    public void assignKoreanId(Long koreanId) {
+      this.koreanId = koreanId;
+    }
+
+    public Long getEnglishId() {
+      return englishId;
+    }
+
+    public void assignEnglishId(Long englishId) {
+      this.englishId = englishId;
+    }
+
+    @Override
+    public String toString() {
+      return String.format("ArticleIds{korean=%d, english=%d}", koreanId, englishId);
+    }
   }
 
   /**
