@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/craftverse-blog-api.iml" filepath="$PROJECT_DIR$/.idea/craftverse-blog-api.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/craftverse-blog-api.craftverse-blog-api.main~1.iml" filepath="$PROJECT_DIR$/.idea/modules/craftverse-blog-api.craftverse-blog-api.main~1.iml" />
     </modules>
   </component>
 </project>
