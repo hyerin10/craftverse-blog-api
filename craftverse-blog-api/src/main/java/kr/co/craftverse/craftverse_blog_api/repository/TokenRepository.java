@@ -58,12 +58,36 @@ public class TokenRepository {
   }
 
   /**
-   * 토큰 삭제 (로그아웃 시 사용)
+   * 액세스 토큰 개별 삭제 (RTR용)
+   * @param userId 사용자 ID
+   */
+  public void deleteAccessToken(Long userId) {
+    redisTemplate.delete(ACCESS_TOKEN_PREFIX + userId);
+  }
+
+  /**
+   * 리프레시 토큰 개별 삭제 (RTR용)
+   * @param userId 사용자 ID
+   */
+  public void deleteRefreshToken(Long userId) {
+    redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
+  }
+
+  /**
+   * 모든 토큰 삭제 (로그아웃 시 사용)
    * @param userId 사용자 ID
    */
   public void deleteTokens(Long userId) {
     redisTemplate.delete(ACCESS_TOKEN_PREFIX + userId);
     redisTemplate.delete(REFRESH_TOKEN_PREFIX + userId);
+  }
+
+  /**
+   * 모든 토큰 삭제 (별칭 메서드)
+   * @param userId 사용자 ID
+   */
+  public void deleteAllTokens(Long userId) {
+    deleteTokens(userId);
   }
 
   /**

@@ -13,6 +13,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -38,8 +40,15 @@ public class SecurityConfig {
     // 허용할 HTTP 메서드 설정 (OPTIONS 포함 필수)
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-    // 허용할 헤더 설정
-    configuration.setAllowedHeaders(Arrays.asList("*"));
+    // 허용할 헤더 설정 - CSRF 토큰 헤더들 추가
+    configuration.setAllowedHeaders(Arrays.asList(
+        "*",
+        "X-XSRF-TOKEN",
+        "X-CSRF-TOKEN",
+        "Authorization",
+        "Content-Type",
+        "Accept"
+    ));
 
     // 인증 정보(쿠키, Authorization 헤더 등) 허용
     configuration.setAllowCredentials(true);
@@ -47,8 +56,13 @@ public class SecurityConfig {
     // preflight 요청 캐시 시간 설정
     configuration.setMaxAge(3600L);
 
-    // 노출할 헤더 설정 (필요한 경우)
-    configuration.setExposedHeaders(Arrays.asList("Authorization", "X-Total-Count"));
+    // 노출할 헤더 설정 - CSRF 토큰 헤더 포함
+    configuration.setExposedHeaders(Arrays.asList(
+        "Authorization",
+        "X-Total-Count",
+        "X-XSRF-TOKEN",
+        "X-CSRF-TOKEN"
+    ));
 
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration);
@@ -61,11 +75,16 @@ public class SecurityConfig {
     http
         // CORS 설정을 맨 앞에 배치
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(AbstractHttpConfigurer::disable)
+        .csrf(csrf -> csrf
+            // 쿠키 기반 CSRF 토큰 저장소 사용 (SPA에 적합)
+            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            // CSRF 토큰을 request handler로 처리
+            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
+        )
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/payments/**").permitAll() // 결제 관련 모든 엔드포인트 허용
+            .requestMatchers("/payments/**").permitAll()
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles/**").permitAll()

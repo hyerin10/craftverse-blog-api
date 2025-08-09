@@ -22,6 +22,7 @@ import kr.co.craftverse.craftverse_blog_api.model.dto.auth.UserResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.auth.UserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.auth.VerifyEmailDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.auth.VerifyPasswordResetDTO;
+import kr.co.craftverse.craftverse_blog_api.model.entity.User;
 import kr.co.craftverse.craftverse_blog_api.service.EmailVerificationService;
 import kr.co.craftverse.craftverse_blog_api.service.OAuth2Service;
 import kr.co.craftverse.craftverse_blog_api.service.PasswordResetService;
@@ -103,7 +104,7 @@ public class AuthController {
   }
 
   /**
-   * 사용자 정보 부분 수정 API (PATCH)
+   * 사용자 정보 부분 수정 API (PATCH) - OAuth
    */
   @PatchMapping("/user/oauth")
   public RestResult<Map<String, Object>> patchUser(
@@ -128,7 +129,7 @@ public class AuthController {
   /**
    * 간단한 토큰 검증 API (사용자 정보 없이)
    */
-  @PostMapping("/validate-token")
+  @PostMapping("/token/status")
   public RestResult<Map<String, Object>> validateTokenOnly(HttpServletRequest request) {
     Map<String, Object> data = new LinkedHashMap<>();
 
@@ -164,13 +165,14 @@ public class AuthController {
   }
 
   /**
-   * 일반 로그인
+   * 일반 로그인 (수정: 리프레시 토큰 포함)
    */
   @PostMapping("/login")
   public RestResult<Map<String, Object>> login(@Valid @RequestBody LoginRequestDTO loginRequestDTO) {
     Map<String, Object> data = new LinkedHashMap<>();
-    String accessToken = userService.login(loginRequestDTO);
-    data.put("accessToken", accessToken);
+    Map<String, String> tokens = userService.login(loginRequestDTO);
+    data.put("accessToken", tokens.get("accessToken"));
+    data.put("refreshToken", tokens.get("refreshToken"));
     return new RestResult<>(data);
   }
 
@@ -260,6 +262,7 @@ public class AuthController {
       throw new UnauthorizedException();
 
     data.put("accessToken", tokenInfo.get("accessToken"));
+    data.put("refreshToken", tokenInfo.get("refreshToken"));
     data.put("user", tokenInfo.get("user"));
     return new RestResult<>(data);
   }
@@ -267,7 +270,7 @@ public class AuthController {
   // ========== 공통 인증 기능 ==========
 
   /**
-   * 토큰 갱신 API
+   * 토큰 갱신 API (RTR 적용 - 일반/OAuth 분기처리)
    */
   @PostMapping("/refresh")
   public RestResult<Map<String, Object>> refreshToken(
@@ -276,9 +279,22 @@ public class AuthController {
       @RequestParam("refreshToken") String refreshToken) {
 
     Map<String, Object> data = new LinkedHashMap<>();
-    String newAccessToken = oAuth2Service.refreshAccessToken(userId, email, refreshToken);
 
-    data.put("accessToken", newAccessToken);
+    // 사용자 정보 조회로 OAuth 여부 확인
+    User user = userService.findById(userId);
+
+    Map<String, String> tokens;
+
+    if (user.getOauthProvider() != null) {
+      // OAuth 사용자인 경우 - 구글 리프레시 토큰 로직 사용
+      tokens = oAuth2Service.refreshAccessToken(userId, email, refreshToken);
+    } else {
+      // 일반 사용자인 경우 - 일반 리프레시 토큰 로직 사용
+      tokens = userService.refreshAccessToken(userId, email, refreshToken);
+    }
+
+    data.put("accessToken", tokens.get("accessToken"));
+    data.put("refreshToken", tokens.get("refreshToken"));
     return new RestResult<>(data);
   }
 

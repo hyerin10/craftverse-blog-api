@@ -345,14 +345,22 @@ public class OAuth2Service {
   }
 
   /**
-   * 리프레시 토큰을 사용하여 액세스 토큰을 갱신합니다.
+   * 리프레시 토큰을 사용하여 액세스 토큰을 갱신합니다. (RTR 적용)
    */
-  public String refreshAccessToken(Long userId, String email, String refreshToken) {
+  @Transactional
+  public Map<String, String> refreshAccessToken(Long userId, String email, String refreshToken) {
     // Redis에서 리프레시 토큰 확인
     String storedRefreshToken = tokenRepository.getRefreshToken(userId);
 
     if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken))
       throw new UnauthorizedException();
+
+    // 사용자 존재 여부 확인
+    User user = userRepository.findByEmail(email)
+        .orElseThrow(UnauthorizedException::new);
+
+    // 기존 리프레시 토큰 삭제 (RTR)
+    tokenRepository.deleteRefreshToken(userId);
 
     // 구글 API로 액세스 토큰 갱신
     HttpHeaders headers = new HttpHeaders();
@@ -374,14 +382,28 @@ public class OAuth2Service {
     );
 
     JsonNode tokenResponse = response.getBody();
-    String newAccessToken = tokenResponse.get(OAUTH_RESPONSE_ACCESS_TOKEN).asText();
+    String newGoogleAccessToken = tokenResponse.get(OAUTH_RESPONSE_ACCESS_TOKEN).asText();
     int expiresIn = tokenResponse.get(OAUTH_RESPONSE_EXPIRES_IN).asInt();
 
-    // Redis에 새 액세스 토큰 저장
-    tokenRepository.saveAccessToken(userId, newAccessToken, expiresIn);
+    // 새로운 리프레시 토큰이 있으면 사용, 없으면 기존 것 재사용
+    String newGoogleRefreshToken = tokenResponse.has(OAUTH_RESPONSE_REFRESH_TOKEN)
+        ? tokenResponse.get(OAUTH_RESPONSE_REFRESH_TOKEN).asText()
+        : refreshToken;
+
+    // Redis에 새 토큰들 저장
+    tokenRepository.saveAccessToken(userId, newGoogleAccessToken, expiresIn);
+    tokenRepository.saveRefreshToken(userId, newGoogleRefreshToken, REFRESH_TOKEN_EXPIRY_SECONDS);
 
     // JWT 토큰 새로 생성
-    return jwtTokenProvider.createAccessToken(userId, email);
+    String newJwtAccessToken = jwtTokenProvider.createAccessToken(userId, email);
+
+    Map<String, String> tokens = new HashMap<>();
+    tokens.put("accessToken", newJwtAccessToken);
+    tokens.put("refreshToken", newGoogleRefreshToken);
+
+    logger.info("[OAuth2Service] OAuth 사용자 토큰 갱신 완료: userId={}, email={}", userId, email);
+
+    return tokens;
   }
 
   @Transactional
@@ -392,13 +414,14 @@ public class OAuth2Service {
       // 토큰을 블랙리스트에 추가
       jwtTokenProvider.blacklistToken(token);
 
-      // 로그 추가
+      // 모든 토큰 삭제
       Long userId = jwtTokenProvider.getUserId(token);
-      String email = jwtTokenProvider.getEmail(token);
+      tokenRepository.deleteTokens(userId);
 
-      logger.info("[UserService] 로그아웃 완료: userId={}, email={}", userId, email);
+      String email = jwtTokenProvider.getEmail(token);
+      logger.info("[OAuth2Service] 로그아웃 완료: userId={}, email={}", userId, email);
     } else {
-      logger.warn("[UserService] 유효하지 않은 토큰으로 로그아웃 시도");
+      logger.warn("[OAuth2Service] 유효하지 않은 토큰으로 로그아웃 시도");
     }
   }
 }
