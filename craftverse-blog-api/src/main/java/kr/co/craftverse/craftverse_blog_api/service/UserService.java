@@ -3,6 +3,9 @@ package kr.co.craftverse.craftverse_blog_api.service;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.exception.DuplicateResourceException;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
@@ -13,6 +16,7 @@ import kr.co.craftverse.craftverse_blog_api.model.dto.auth.UserRegistrationReque
 import kr.co.craftverse.craftverse_blog_api.model.dto.auth.UserResponseDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.auth.UserUpdateRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.entity.User;
+import kr.co.craftverse.craftverse_blog_api.repository.TokenRepository;
 import kr.co.craftverse.craftverse_blog_api.repository.UserRepository;
 import kr.co.craftverse.craftverse_blog_api.service.messaging.EmailProducer;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +34,10 @@ public class UserService {
   private final Logger logger;
   private final JwtTokenProvider jwtTokenProvider;
   private final EmailVerificationService emailVerificationService;
+  private final TokenRepository tokenRepository;
+
+  // 리프레시 토큰 만료 시간 (7일)
+  private static final long REFRESH_TOKEN_EXPIRY_SECONDS = 7L * 24 * 60 * 60;
 
   /**
    * 현재 사용자 정보 조회
@@ -167,7 +175,7 @@ public class UserService {
   }
 
   @Transactional
-  public String login(LoginRequestDTO loginRequestDTO) {
+  public Map<String, String> login(LoginRequestDTO loginRequestDTO) {
     // 이메일로 사용자 조회
     User user = userRepository.findByEmail(loginRequestDTO.getEmail())
         .orElseThrow(UnauthorizedException::new);
@@ -176,12 +184,67 @@ public class UserService {
     if (!passwordEncoder.matches(loginRequestDTO.getPassword(), user.getPassword()))
       throw new UnauthorizedException();
 
-    // JWT 토큰 생성
+    // JWT 액세스 토큰 생성
     String accessToken = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail());
+
+    // 리프레시 토큰 생성 및 저장
+    String refreshToken = generateRefreshToken();
+    tokenRepository.saveRefreshToken(user.getId(), refreshToken, REFRESH_TOKEN_EXPIRY_SECONDS);
 
     userRepository.save(user);
 
-    return accessToken;
+    Map<String, String> tokens = new HashMap<>();
+    tokens.put("accessToken", accessToken);
+    tokens.put("refreshToken", refreshToken);
+
+    return tokens;
+  }
+
+  /**
+   * 일반 사용자 리프레시 토큰 갱신 (RTR 적용)
+   */
+  @Transactional
+  public Map<String, String> refreshAccessToken(Long userId, String email, String refreshToken) {
+    // Redis에서 리프레시 토큰 확인
+    String storedRefreshToken = tokenRepository.getRefreshToken(userId);
+
+    if (storedRefreshToken == null || !storedRefreshToken.equals(refreshToken)) {
+      throw new UnauthorizedException();
+    }
+
+    // 사용자 존재 여부 확인
+    User user = userRepository.findById(userId)
+        .orElseThrow(UnauthorizedException::new);
+
+    // 이메일 일치 확인
+    if (!user.getEmail().equals(email)) {
+      throw new UnauthorizedException();
+    }
+
+    // 기존 리프레시 토큰 삭제 (RTR)
+    tokenRepository.deleteRefreshToken(userId);
+
+    // 새로운 토큰들 생성
+    String newAccessToken = jwtTokenProvider.createAccessToken(userId, email);
+    String newRefreshToken = generateRefreshToken();
+
+    // 새로운 리프레시 토큰 저장
+    tokenRepository.saveRefreshToken(userId, newRefreshToken, REFRESH_TOKEN_EXPIRY_SECONDS);
+
+    Map<String, String> tokens = new HashMap<>();
+    tokens.put("accessToken", newAccessToken);
+    tokens.put("refreshToken", newRefreshToken);
+
+    logger.info("[UserService] 일반 사용자 토큰 갱신 완료: userId={}, email={}", userId, email);
+
+    return tokens;
+  }
+
+  /**
+   * 리프레시 토큰 생성
+   */
+  private String generateRefreshToken() {
+    return UUID.randomUUID().toString().replace("-", "") + System.currentTimeMillis();
   }
 
   /**
@@ -196,10 +259,11 @@ public class UserService {
       // 토큰을 블랙리스트에 추가
       jwtTokenProvider.blacklistToken(token);
 
-      // 로그 추가
+      // 모든 토큰 삭제
       Long userId = jwtTokenProvider.getUserId(token);
-      String email = jwtTokenProvider.getEmail(token);
+      tokenRepository.deleteTokens(userId);
 
+      String email = jwtTokenProvider.getEmail(token);
       logger.info("[UserService] 로그아웃 완료: userId={}, email={}", userId, email);
     } else {
       logger.warn("[UserService] 유효하지 않은 토큰으로 로그아웃 시도");
@@ -213,6 +277,10 @@ public class UserService {
   @Transactional
   public void delete(Long userId) {
     User user = userRepository.findById(userId).orElseThrow(UnauthorizedException::new);
+
+    // 모든 토큰 삭제
+    tokenRepository.deleteTokens(userId);
+
     userRepository.delete(user);
     logger.info("[UserService] 계정 삭제 완료: userId={}, email={}", userId, user.getEmail());
   }
