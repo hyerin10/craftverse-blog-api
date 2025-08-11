@@ -1,0 +1,538 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="craftverse-blog-api.craftverse-blog-api.main~1:jar2" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="0ab2d1f2-25de-4e6e-a587-c651900f590f" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.idea/artifacts/craftverse_blog_api_craftverse_blog_api_main_1_jar2.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/sshConfigs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/uiDesigner.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/META-INF/MANIFEST.MF" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/GlobalConstant.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/RestError.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/RestResult.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/http/NotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/http/UnauthorizedException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/util/TimeUtils.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/AppConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/JwtTokenProvider.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/PaymentConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/RabbitMQConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/RedisConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/SecurityConfig.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/TossPaymentProperties.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/controller/ArticleController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/controller/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/controller/PaymentController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/controller/SitemapController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/exception/DuplicateResourceException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/exception/InvalidPaymentStatusException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/exception/payment/PaymentAmountMismatchException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/exception/payment/PaymentNotFoundException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/exception/payment/PaymentProcessException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/exception/payment/TossPaymentException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/JwtAuthenticationFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/ArticleDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/ArticlePurchaseDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/ArticlePurchaseRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/EmailMessageDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/GoogleLoginRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/LoginRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/OAuthUserUpdateRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/ResetPasswordRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/UserRegistrationRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/UserResponseDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/UserUpdateRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/VerifyEmailDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/auth/VerifyPasswordResetDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/payment/PaymentCancelRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/payment/PaymentConfirmRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/payment/PaymentRequestDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/dto/payment/PaymentResponseDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/entity/Article.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/entity/ArticlePurchase.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/entity/ArticleTranslation.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/entity/Payment.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/model/entity/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/repository/ArticlePurchasesRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/repository/ArticleRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/repository/ArticleTranslationRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/repository/PaymentRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/repository/TokenRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/repository/UserRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/security/CustomUserDetails.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/security/TossWebhookSecurityValidator.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/ArticleService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/EmailVerificationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/OAuth2Service.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/PasswordResetService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/PurchaseService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/TossPaymentService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/UserService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/VerificationCodeService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/messaging/EmailConsumer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/messaging/EmailProducer.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/META-INF/MANIFEST.MF" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/test/java/kr/co/craftverse/craftverse_blog_api/controller/ArticleControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/test/java/kr/co/craftverse/craftverse_blog_api/controller/AuthControllerTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/test/java/kr/co/craftverse/craftverse_blog_api/service/EmailVerificationServiceTest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/craftverse-blog-api/src/test/java/kr/co/craftverse/craftverse_blog_api/service/UserServiceTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/CraftverseBlogApiApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/CraftverseBlogApiApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/application.properties" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/craftverse-blog-api">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$/craftverse-blog-api">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JUnit5 Test Class" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="95bc33c91bff99d035731862d239d22a4a3a3694" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2uwAFIZV4zZKB4jqeU6uTRbuW1J" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.ArticleControllerTest.executor": "Run",
+    "Gradle.AuthControllerTest.executor": "Run",
+    "Gradle.Build craftverse-blog-api.executor": "Run",
+    "Gradle.CommonAuthTest.refreshToken_InvalidRefreshToken.executor": "Run",
+    "Gradle.CommonAuthTest.refreshToken_Success.executor": "Run",
+    "Gradle.CreateArticle.fail_createArticle_invalidCategory.executor": "Run",
+    "Gradle.CreateArticle.fail_createArticle_invalidJson.executor": "Run",
+    "Gradle.CreateArticle.fail_createArticle_invalidLanguage.executor": "Run",
+    "Gradle.CreateArticle.fail_createArticle_missingContentType.executor": "Run",
+    "Gradle.CreateArticle.fail_createArticle_missingCsrf.executor": "Run",
+    "Gradle.CreateArticle.fail_createArticle_missingTitle.executor": "Run",
+    "Gradle.CreateArticle.success_createArticle.executor": "Run",
+    "Gradle.DataIntegrityTests.fail_negativeViewCount.executor": "Run",
+    "Gradle.DataIntegrityTests.fail_viewCountOverflow.executor": "Run",
+    "Gradle.DataIntegrityTests.success_maxIntegerViewCount.executor": "Run",
+    "Gradle.DataIntegrityTests.success_veryLongStringData.executor": "Run",
+    "Gradle.DeleteArticle.fail_deleteArticle_invalidId.executor": "Run",
+    "Gradle.DeleteArticle.fail_deleteArticle_missingCsrf.executor": "Run",
+    "Gradle.DeleteArticle.fail_deleteArticle_notFound.executor": "Run",
+    "Gradle.DeleteArticle.success_deleteArticle.executor": "Run",
+    "Gradle.EdgeCaseTests.fail_caseSensitiveLanguage.executor": "Run",
+    "Gradle.EdgeCaseTests.fail_duplicateParameters.executor": "Run",
+    "Gradle.EdgeCaseTests.fail_overMaxValueId.executor": "Run",
+    "Gradle.EdgeCaseTests.success_duplicateParameters.executor": "Run",
+    "Gradle.EdgeCaseTests.success_longCookieValue.executor": "Run",
+    "Gradle.EdgeCaseTests.success_manyCookies.executor": "Run",
+    "Gradle.EdgeCaseTests.success_maxValueId.executor": "Run",
+    "Gradle.EdgeCaseTests.success_nullParameters.executor": "Run",
+    "Gradle.EmailVerificationServiceTest.executor": "Run",
+    "Gradle.GetArticleById.executor": "Run",
+    "Gradle.GetArticleById.fail_getArticleById_invalidIdFormat.executor": "Run",
+    "Gradle.GetArticleById.fail_getArticleById_invalidIdFormat_2.executor": "Run",
+    "Gradle.GetArticleById.fail_getArticleById_invalidIdFormat_3.executor": "Run",
+    "Gradle.GetArticleById.fail_getArticleById_invalidIdFormat_4.executor": "Run",
+    "Gradle.GetArticleById.fail_getArticleById_notFound.executor": "Run",
+    "Gradle.GetArticleById.success_getArticleById.executor": "Run",
+    "Gradle.GetArticleByIdTests.fail_invalidIdFormat.executor": "Run",
+    "Gradle.GetArticleByIdTests.success_anonymousUserAccess.executor": "Run",
+    "Gradle.GetArticlePurchases.success_getPurchases_authenticatedUser.executor": "Run",
+    "Gradle.GetArticlePurchasesTests.fail_unauthenticatedUserRedirectsToOAuth2Login.executor": "Run",
+    "Gradle.GetArticlePurchasesTests.fail_unauthenticatedUserReturns401.executor": "Run",
+    "Gradle.GetArticlePurchasesTests.success_anonymousUser.executor": "Run",
+    "Gradle.GetArticlePurchasesTests.success_authenticatedUser.executor": "Run",
+    "Gradle.GetArticlePurchasesTests.success_variousPurchaseStatuses.executor": "Run",
+    "Gradle.GetArticlesByLanguage.success_getArticles_defaultLanguage.executor": "Run",
+    "Gradle.GetArticlesByLanguage.success_getArticles_emptyResult.executor": "Run",
+    "Gradle.GetArticlesByLanguage.success_getArticles_specificLanguage.executor": "Run",
+    "Gradle.GetArticlesByLanguage.success_getArticles_specificLanguage_en.executor": "Run",
+    "Gradle.GetArticlesByLanguage.success_getArticles_specificLanguage_ko.executor": "Run",
+    "Gradle.GetArticlesByLanguage.success_getArticles_untranslatedLanguage.executor": "Run",
+    "Gradle.GetArticlesByLanguageTests.executor": "Run",
+    "Gradle.GetArticlesByLanguageTests.fail_unsupportedLanguage.executor": "Run",
+    "Gradle.GetArticlesByLanguageTests.success_anonymousUserAccess.executor": "Run",
+    "Gradle.GetArticlesByLanguageTests.success_getEnglishArticles.executor": "Run",
+    "Gradle.GetArticlesPurchases.executor": "Run",
+    "Gradle.GetArticlesPurchases.success_getPurchases_authenticatedUser.executor": "Run",
+    "Gradle.GetArticlesPurchases.success_getPurchases_specificLanguage.executor": "Run",
+    "Gradle.GetArticlesPurchases.success_getPurchases_unauthenticatedUser.executor": "Run",
+    "Gradle.GoogleOAuthTest.getGoogleAuthUrl_Default.executor": "Run",
+    "Gradle.GoogleOAuthTest.getGoogleAuthUrl_InvalidAction.executor": "Run",
+    "Gradle.GoogleOAuthTest.getGoogleAuthUrl_Login.executor": "Run",
+    "Gradle.GoogleOAuthTest.getGoogleAuthUrl_Signup.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_CodeAlreadyUsed.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_EmptyCode.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_ExpiredCode.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_Failure.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_GoogleApiTimeout.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_MissingParameters.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_Success.executor": "Run",
+    "Gradle.GoogleOAuthTest.googleLogin_UserDenied.executor": "Run",
+    "Gradle.HttpMethodAndEndpointErrors.fail_notFoundEndpoint.executor": "Run",
+    "Gradle.HttpMethodAndEndpointErrors.fail_unsupportedHttpMethod.executor": "Run",
+    "Gradle.IncrementViews.executor": "Run",
+    "Gradle.IncrementViews.fail_incrementViews_invalidId.executor": "Run",
+    "Gradle.IncrementViews.success_incrementViews_alreadyViewed.executor": "Run",
+    "Gradle.IncrementViews.success_incrementViews_differentArticleCookie.executor": "Run",
+    "Gradle.IncrementViews.success_incrementViews_newView.executor": "Run",
+    "Gradle.IncrementViewsTests.fail_invalidIdFormat.executor": "Run",
+    "Gradle.IncrementViewsTests.fail_missingCsrf.executor": "Run",
+    "Gradle.IncrementViewsTests.success_anonymousUser.executor": "Run",
+    "Gradle.IncrementViewsTests.success_firstView_viewCountIncreases.executor": "Run",
+    "Gradle.IncrementViewsTests.success_repeatView_viewCountNotChanged.executor": "Run",
+    "Gradle.IncrementViewsTests.success_viewCountRangeTest.executor": "Run",
+    "Gradle.InternationalizationTests.fail_variousLanguageCodePatterns.executor": "Run",
+    "Gradle.InternationalizationTests.success_koreanContent.executor": "Run",
+    "Gradle.NotFoundTests.fail_nonExistentEndpoints.executor": "Run",
+    "Gradle.NotFoundTests.fail_pathSeparatorErrors.executor": "Run",
+    "Gradle.NotFoundTests.fail_specialCharactersInUrl.executor": "Run",
+    "Gradle.PerformanceTests.success_concurrentRequests.executor": "Run",
+    "Gradle.PerformanceTests.success_largeDataResponse.executor": "Run",
+    "Gradle.RegularAuthTest.registerUser_Success.executor": "Run",
+    "Gradle.RegularAuthTest.verifyEmail_InvalidCode.executor": "Run",
+    "Gradle.RegularAuthTest.verifyEmail_Success.executor": "Run",
+    "Gradle.Status400Tests.test400_updateWithInvalidId.executor": "Run",
+    "Gradle.UpdateArticle.fail_updateArticle_invalidId.executor": "Run",
+    "Gradle.UpdateArticle.fail_updateArticle_notFound.executor": "Run",
+    "Gradle.UpdateArticle.success_updateArticle.executor": "Run",
+    "Gradle.UserServiceTest.executor": "Run",
+    "Gradle.craftverse-blog-api [bootJar].executor": "Run",
+    "Gradle.craftverse-blog-api [build].executor": "Run",
+    "Gradle.craftverse-blog-api [clean].executor": "Run",
+    "Gradle.craftverse-blog-api [jar].executor": "Run",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "Spring Boot.CraftverseBlogApiApplication.executor": "Run",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "Merging main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/hyerin/projects/craftverse-blog-api",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Artifacts",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.35517243",
+    "show.migrate.to.gradle.popup": "false",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "redis",
+      "postgresql"
+    ]
+  }
+}]]></component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="kr.co.craftverse.craftverse_blog_api.service" />
+      <recent name="kr.co.craftverse.craftverse_blog_api.controller" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Gradle.craftverse-blog-api [bootJar]">
+    <configuration name="AuthControllerTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;kr.co.craftverse.craftverse_blog_api.controller.AuthControllerTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="GoogleOAuthTest.googleLogin_GoogleApiTimeout" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;kr.co.craftverse.craftverse_blog_api.controller.AuthControllerTest$GoogleOAuthTest.googleLogin_GoogleApiTimeout&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="craftverse-blog-api [bootJar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="bootJar" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="craftverse-blog-api [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="craftverse-blog-api [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="jar" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="CraftverseBlogApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="craftverse-blog-api.craftverse-blog-api.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="kr.co.craftverse.craftverse_blog_api.CraftverseBlogApiApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.craftverse-blog-api [bootJar]" />
+        <item itemvalue="Gradle.craftverse-blog-api [clean]" />
+        <item itemvalue="Gradle.craftverse-blog-api [jar]" />
+        <item itemvalue="Gradle.AuthControllerTest" />
+        <item itemvalue="Gradle.GoogleOAuthTest.googleLogin_GoogleApiTimeout" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9f38398b9061-18abd8497189-intellij.indexing.shared.core-IU-241.14494.240" />
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-IU-241.14494.240" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="0ab2d1f2-25de-4e6e-a587-c651900f590f" name="Changes" comment="" />
+      <created>1743149157859</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743149157859</updated>
+      <workItem from="1743149158891" duration="9192000" />
+      <workItem from="1743405174444" duration="2916000" />
+      <workItem from="1743409928933" duration="1672000" />
+      <workItem from="1743494189725" duration="4483000" />
+      <workItem from="1743502584851" duration="39000" />
+      <workItem from="1743502650438" duration="5739000" />
+      <workItem from="1743606595810" duration="6448000" />
+      <workItem from="1743927317969" duration="4754000" />
+      <workItem from="1744198591460" duration="8046000" />
+      <workItem from="1744969552755" duration="1978000" />
+      <workItem from="1748671477430" duration="9924000" />
+      <workItem from="1748699782090" duration="7000" />
+      <workItem from="1748715049722" duration="764000" />
+      <workItem from="1748715837303" duration="3893000" />
+      <workItem from="1748872142806" duration="8029000" />
+      <workItem from="1748896746180" duration="4881000" />
+      <workItem from="1749019541972" duration="11125000" />
+      <workItem from="1749056604241" duration="1621000" />
+      <workItem from="1749621433868" duration="16333000" />
+      <workItem from="1749831043958" duration="5021000" />
+      <workItem from="1749900874726" duration="6335000" />
+      <workItem from="1749908904010" duration="2203000" />
+      <workItem from="1750007302743" duration="36000" />
+      <workItem from="1750007637358" duration="223000" />
+      <workItem from="1750056533677" duration="369000" />
+      <workItem from="1750056981648" duration="4390000" />
+      <workItem from="1750139325799" duration="3075000" />
+      <workItem from="1750169331054" duration="3975000" />
+      <workItem from="1750175790865" duration="1297000" />
+      <workItem from="1750259633457" duration="5079000" />
+      <workItem from="1750343563891" duration="4505000" />
+      <workItem from="1750395436323" duration="1978000" />
+      <workItem from="1750438029862" duration="3965000" />
+      <workItem from="1750484531002" duration="7429000" />
+      <workItem from="1750505196245" duration="5906000" />
+      <workItem from="1750581598706" duration="1289000" />
+      <workItem from="1750862929489" duration="5471000" />
+      <workItem from="1750934862075" duration="9320000" />
+      <workItem from="1751007117138" duration="1173000" />
+      <workItem from="1751039032899" duration="3467000" />
+      <workItem from="1751055112728" duration="577000" />
+      <workItem from="1751056345567" duration="800000" />
+      <workItem from="1751109144693" duration="7293000" />
+      <workItem from="1751195478078" duration="4825000" />
+      <workItem from="1751302070614" duration="834000" />
+      <workItem from="1751452647683" duration="216000" />
+      <workItem from="1751641679599" duration="717000" />
+      <workItem from="1752288540098" duration="926000" />
+      <workItem from="1752295127249" duration="10726000" />
+      <workItem from="1752310367435" duration="1637000" />
+      <workItem from="1752315280445" duration="3606000" />
+      <workItem from="1752332552370" duration="968000" />
+      <workItem from="1752401461250" duration="3772000" />
+      <workItem from="1752407901104" duration="3322000" />
+      <workItem from="1752490623570" duration="4516000" />
+      <workItem from="1752584605181" duration="1474000" />
+      <workItem from="1752645405206" duration="3753000" />
+      <workItem from="1752902958084" duration="1824000" />
+      <workItem from="1752919739406" duration="1489000" />
+      <workItem from="1753268420558" duration="767000" />
+      <workItem from="1753353551905" duration="1217000" />
+      <workItem from="1753534313292" duration="1202000" />
+      <workItem from="1754053817282" duration="1178000" />
+      <workItem from="1754225442426" duration="2025000" />
+      <workItem from="1754310097223" duration="3028000" />
+      <workItem from="1754557747228" duration="4424000" />
+      <workItem from="1754724784136" duration="4181000" />
+      <workItem from="1754743604644" duration="4100000" />
+      <workItem from="1754905830775" duration="3881000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
