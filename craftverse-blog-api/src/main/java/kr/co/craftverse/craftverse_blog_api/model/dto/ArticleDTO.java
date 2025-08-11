@@ -27,6 +27,7 @@ public class ArticleDTO {
 
   // 프리미엄 가격 필드 추가
   private BigDecimal premiumPrice;
+  private Integer expectationCount;
 
   // 프론트엔드용 추가 필드들
   private Boolean hasPremiumAccess; // 현재 사용자가 프리미엄 접근 권한을 가지고 있는지
