@@ -206,4 +206,51 @@ public class ArticleController {
     viewCookie.setPath(COOKIE_PATH_ROOT);
     response.addCookie(viewCookie);
   }
+
+  @PostMapping("/article/{id}/expectations")
+  public RestResult<Map<String, Object>> incrementExpectations(@PathVariable @Valid @Positive Long id,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+
+    Map<String, Object> data = new LinkedHashMap<>();
+
+    // 해당 아티클에 대한 기대 쿠키 확인
+    String articleExpectationCookieName = "article_expectation_" + id;
+    boolean hasExpectedThisArticle = hasArticleExpectationCookie(request, articleExpectationCookieName);
+
+    if (!hasExpectedThisArticle) {
+      // 이 아티클을 처음 기대 - 쿠키 생성 + 기대수 증가
+      createArticleExpectationCookie(response, articleExpectationCookieName);
+      Integer expectationCount = articleService.incrementExpectationCount(id);
+      data.put("expectationCount", expectationCount);
+      data.put("isNewExpectation", true);
+    } else {
+      // 이미 기대한 아티클 - 현재 기대수만 반환
+      Integer currentExpectationCount = articleService.getCurrentExpectationCount(id);
+      data.put("expectationCount", currentExpectationCount);
+      data.put("isNewExpectation", false);
+    }
+
+    return new RestResult<>(data);
+  }
+
+  private boolean hasArticleExpectationCookie(HttpServletRequest request, String cookieName) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies != null) {
+      for (Cookie cookie : cookies) {
+        if (cookieName.equals(cookie.getName())) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  private void createArticleExpectationCookie(HttpServletResponse response, String cookieName) {
+    Cookie expectationCookie = new Cookie(cookieName, "expected");
+    expectationCookie.setMaxAge(COOKIE_MAX_AGE_ONE_YEAR); // 1 year
+    expectationCookie.setHttpOnly(true);
+    expectationCookie.setPath(COOKIE_PATH_ROOT);
+    response.addCookie(expectationCookie);
+  }
 }

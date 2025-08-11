@@ -122,6 +122,7 @@ public class ArticleService {
         .createdAt(article.getCreatedAt())
         .updatedAt(article.getUpdatedAt())
         .viewCount(article.getViewCount())
+        .expectationCount(article.getExpectationCount())
         .slug(article.getSlug())
         .metaDescription(article.getMetaDescription())
         .isFullContentAvailable(isFullContentAvailable)
@@ -650,6 +651,7 @@ public class ArticleService {
             .createdAt(article.getCreatedAt())
             .updatedAt(article.getUpdatedAt())
             .viewCount(article.getViewCount())
+            .expectationCount(article.getExpectationCount())
             .slug(article.getSlug())
             .metaDescription(article.getMetaDescription())
             .isFullContentAvailable(true)
@@ -749,5 +751,19 @@ public class ArticleService {
 
     log.info("반환할 구매 내역 수: {}", articlePurchasesDTO.size());
     return articlePurchasesDTO;
+  }
+
+  @Transactional
+  public Integer incrementExpectationCount(Long id) {
+    Article article = articleRepository.findById(id)
+        .orElseThrow(NotFoundException::new);
+    article.incrementExpectationCount();
+    return article.getExpectationCount();
+  }
+
+  public Integer getCurrentExpectationCount(Long articleId) {
+    Article article = articleRepository.findById(articleId)
+        .orElseThrow(NotFoundException::new);
+    return article.getExpectationCount();
   }
 }
