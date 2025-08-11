@@ -35,7 +35,7 @@ public class SecurityConfig {
     CorsConfiguration configuration = new CorsConfiguration();
 
     // 허용할 오리진 설정
-    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+    configuration.setAllowedOrigins(Arrays.asList("https://craftverse.co.kr"));
 
     // 허용할 HTTP 메서드 설정 (OPTIONS 포함 필수)
     configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
