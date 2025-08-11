@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'kr.co.craftverse'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0-SNAPSHOT'
 
 java {
 	toolchain {
@@ -47,6 +47,10 @@ dependencies {
 	runtimeOnly "org.postgresql:postgresql"
 	annotationProcessor "org.projectlombok:lombok"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+}
+
+bootJar {
+	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 tasks.named("test") {
