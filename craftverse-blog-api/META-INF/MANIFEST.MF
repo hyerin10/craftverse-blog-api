@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: kr.co.craftverse.craftverse_blog_api.CraftverseBlogApiApplic
+ ation
+
