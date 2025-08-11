@@ -54,6 +54,9 @@ public class Article {
   @Column(name="premium_price", precision = 10, scale = 2)
   private BigDecimal premiumPrice;
 
+  @Column(name="expectation_count")
+  private Integer expectationCount;
+
   public void saveArticle(long id, ArticleDTO articleDTO) {
     this.id = id;
     this.title = articleDTO.getTitle();
@@ -67,6 +70,7 @@ public class Article {
     this.slug = articleDTO.getSlug();
     this.metaDescription = articleDTO.getMetaDescription();
     this.premiumPrice = articleDTO.getPremiumPrice();
+    this.expectationCount = articleDTO.getExpectationCount();
   }
 
   public void incrementViewCount() {
@@ -74,6 +78,13 @@ public class Article {
       this.viewCount = 1;
     else
       this.viewCount += 1;
+  }
+
+  public void incrementExpectationCount() {
+    if (this.expectationCount == null)
+      this.expectationCount = 1;
+    else
+      this.expectationCount += 1;
   }
 
   // 프리미엄 가격 관련 유틸리티 메서드
