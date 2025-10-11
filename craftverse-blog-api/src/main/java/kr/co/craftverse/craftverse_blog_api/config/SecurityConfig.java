@@ -84,6 +84,7 @@ public class SecurityConfig {
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/health").permitAll()
             .requestMatchers("/payments/**").permitAll()
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/article/**").permitAll()
