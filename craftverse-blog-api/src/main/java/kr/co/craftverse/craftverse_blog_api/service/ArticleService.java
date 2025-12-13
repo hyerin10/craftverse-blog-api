@@ -16,7 +16,12 @@ import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.WHITESP
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import java.io.FileNotFoundException;
 import java.math.BigDecimal;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +42,8 @@ import kr.co.craftverse.craftverse_blog_api.repository.ArticleTranslationReposit
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.core.io.PathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -129,6 +136,32 @@ public class ArticleService {
         .hasPremiumAccess(hasPremiumAccess)
         .isContentFiltered(!isFullContentAvailable)
         .build();
+  }
+
+  public Resource downloadZipFile(long id, HttpServletRequest request)
+      throws FileNotFoundException, AccessDeniedException {
+    // 1. 기사 조회
+    Article article = articleRepository.findById(id)
+        .orElseThrow(NotFoundException::new);
+
+    // 2. 프리미엄 기사 체크 및 권한 확인
+    if(article.getIsPremium() && !checkPurchaseFromDatabase(extractUserIdFromRequest(request), id, "ko"))
+      throw new AccessDeniedException("You don't have access to this article");
+
+    // 3. 파일 경로 검증
+    String filePath = article.getDownloadFilePath();
+    if (filePath == null || filePath.isEmpty())
+      throw new FileNotFoundException("Download file not found");
+
+    // 4. 파일 존재 여부 확인
+    Path path = Paths.get(filePath);
+    if (!Files.exists(path)) {
+      log.error("File not found at path: {}", filePath);
+      throw new FileNotFoundException("File not found at: " + filePath);
+    }
+
+    // 5. PathResource 반환
+    return new PathResource(path);
   }
 
   /**

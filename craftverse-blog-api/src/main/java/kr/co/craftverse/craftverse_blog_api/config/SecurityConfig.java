@@ -89,6 +89,7 @@ public class SecurityConfig {
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles/**").permitAll()
+//            .requestMatchers("/article/{id}/download").authenticated()
             .requestMatchers("/sitemap.xml").permitAll()
             .requestMatchers("/", "/home", "/about").permitAll()
             .anyRequest().authenticated()
