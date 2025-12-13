@@ -57,21 +57,8 @@ public class Article {
   @Column(name="expectation_count")
   private Integer expectationCount;
 
-  public void saveArticle(long id, ArticleDTO articleDTO) {
-    this.id = id;
-    this.title = articleDTO.getTitle();
-    this.content = articleDTO.getContent();
-    this.category = articleDTO.getCategory();
-    this.isPremium = articleDTO.getIsPremium();
-    this.language = articleDTO.getLanguage();
-    this.viewCount = articleDTO.getViewCount();
-    this.createdAt = articleDTO.getCreatedAt();
-    this.updatedAt = articleDTO.getUpdatedAt();
-    this.slug = articleDTO.getSlug();
-    this.metaDescription = articleDTO.getMetaDescription();
-    this.premiumPrice = articleDTO.getPremiumPrice();
-    this.expectationCount = articleDTO.getExpectationCount();
-  }
+  @Column(name="download_file_path")
+  private String downloadFilePath;
 
   public void incrementViewCount() {
     if (this.viewCount == null)
@@ -85,15 +72,5 @@ public class Article {
       this.expectationCount = 1;
     else
       this.expectationCount += 1;
-  }
-
-  // 프리미엄 가격 관련 유틸리티 메서드
-  public boolean hasPremiumPrice() {
-    return this.premiumPrice != null && this.premiumPrice.compareTo(BigDecimal.ZERO) > 0;
-  }
-
-  // 가격을 Long(원 단위)으로 반환하는 메서드 (결제 API용)
-  public Long getPremiumPriceAsLong() {
-    return this.premiumPrice != null ? this.premiumPrice.longValue() : null;
   }
 }
