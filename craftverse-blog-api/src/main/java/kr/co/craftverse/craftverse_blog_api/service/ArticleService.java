@@ -3,6 +3,7 @@ package kr.co.craftverse.craftverse_blog_api.service;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_FILE_PATH_PREFIX_WINDOWS;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CACHE_EXPIRE_HOURS;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CONTENT_TRUNCATION_SUFFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.FILE_EXT_PNG;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.FILE_EXT_ZIP;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.HTML_TAG_REGEX;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.LANGUAGE_EN;
@@ -140,6 +141,31 @@ public class ArticleService {
         .build();
   }
 
+  public Resource getSlide(long id, int number, HttpServletRequest request)
+      throws AccessDeniedException, FileNotFoundException {
+    // 1. 기사 조회
+    Article article = articleRepository.findById(id)
+        .orElseThrow(NotFoundException::new);
+
+    // 2. 프리미엄 기사 체크 및 권한 확인
+    if(article.getIsPremium() && !checkPurchaseFromDatabase(extractUserIdFromRequest(request), id, "ko"))
+      throw new AccessDeniedException("You don't have access to this article");
+
+    String paddedId = padZero(id);
+    String paddedNumber = padZero(number);
+    String filePath = ARTICLE_FILE_PATH_PREFIX_WINDOWS + paddedId + "\\" + paddedNumber + FILE_EXT_PNG;
+
+    // 4. 파일 존재 여부 확인
+    Path path = Paths.get(filePath);
+    if (!Files.exists(path)) {
+      log.error("File not found at path: {}", filePath);
+      throw new FileNotFoundException("File not found at: " + filePath);
+    }
+
+    // 5. PathResource 반환
+    return new PathResource(path);
+
+  }
   public Resource downloadZipFile(long id, HttpServletRequest request)
       throws FileNotFoundException, AccessDeniedException {
     // 1. 기사 조회

@@ -1,5 +1,6 @@
 package kr.co.craftverse.craftverse_blog_api.controller;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_FILE_PATH_PREFIX_WINDOWS;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_VIEWED_COOKIE_PREFIX;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.COOKIE_MAX_AGE_ONE_YEAR;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.COOKIE_PATH_ROOT;
@@ -12,9 +13,13 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
@@ -30,7 +35,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
@@ -126,6 +134,19 @@ public class ArticleController {
     data.put("article", articleService.getById(id, request)); // request 전달
     return new RestResult<>(data);
   }
+
+  @GetMapping("/article/{id}/slide/{slideNumber}")
+  public ResponseEntity<Resource> getSlide(
+      @PathVariable @Valid @Positive Long id,
+      @PathVariable @Valid @Positive int slideNumber, HttpServletRequest request) throws IOException {
+    Resource resource = articleService.getSlide(id, slideNumber, request);
+
+    return ResponseEntity.ok()
+        .contentType(MediaType.IMAGE_PNG)
+        .cacheControl(CacheControl.maxAge(1, TimeUnit.HOURS))
+        .body(resource);
+  }
+
 
   @PostMapping("/article/{id}/download")
   public ResponseEntity<Resource> downloadArticle(
