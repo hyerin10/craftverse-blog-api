@@ -1,7 +1,9 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_FILE_PATH_PREFIX_WINDOWS;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CACHE_EXPIRE_HOURS;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CONTENT_TRUNCATION_SUFFIX;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.FILE_EXT_ZIP;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.HTML_TAG_REGEX;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.LANGUAGE_EN;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.LANGUAGE_KO;
@@ -148,10 +150,8 @@ public class ArticleService {
     if(article.getIsPremium() && !checkPurchaseFromDatabase(extractUserIdFromRequest(request), id, "ko"))
       throw new AccessDeniedException("You don't have access to this article");
 
-    // 3. 파일 경로 검증
-    String filePath = article.getDownloadFilePath();
-    if (filePath == null || filePath.isEmpty())
-      throw new FileNotFoundException("Download file not found");
+    String paddedId = padZero(id);
+    String filePath = ARTICLE_FILE_PATH_PREFIX_WINDOWS + paddedId + "\\" + paddedId + FILE_EXT_ZIP;
 
     // 4. 파일 존재 여부 확인
     Path path = Paths.get(filePath);
@@ -162,6 +162,11 @@ public class ArticleService {
 
     // 5. PathResource 반환
     return new PathResource(path);
+  }
+
+  // 제로 패딩 함수
+  private String padZero(long id) {
+    return String.format("%0" + 2 + "d", id);
   }
 
   /**
