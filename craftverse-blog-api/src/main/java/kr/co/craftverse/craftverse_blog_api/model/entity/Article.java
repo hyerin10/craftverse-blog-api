@@ -57,9 +57,6 @@ public class Article {
   @Column(name="expectation_count")
   private Integer expectationCount;
 
-  @Column(name="download_file_path")
-  private String downloadFilePath;
-
   public void incrementViewCount() {
     if (this.viewCount == null)
       this.viewCount = 1;
