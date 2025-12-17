@@ -14,7 +14,6 @@ import java.math.BigDecimal;
 public class ArticleDTO {
   private Long id;
   private String title;
-  private String content;
   private String category;
   private String language;
   private Boolean isPremium;
@@ -24,6 +23,7 @@ public class ArticleDTO {
   private String slug;
   private String metaDescription;
   private Boolean isFullContentAvailable;
+  private Integer slideCount;
 
   // 프리미엄 가격 필드 추가
   private BigDecimal premiumPrice;
