@@ -69,7 +69,7 @@ public class ArticleService {
   public ArticleDTO getById(long id, HttpServletRequest request) {
     return getById(id, request, false);
   }
-
+  // todo: 유료 콘텐츠 접근 제한 구현 필요
   public ArticleDTO getById(long id, HttpServletRequest request, boolean ignoreCache) {
     Article article = articleRepository.findById(id).orElseThrow(NotFoundException::new);
 
@@ -84,47 +84,10 @@ public class ArticleService {
     // 콘텐츠 접근 권한 결정
     boolean isFullContentAvailable = true;
     boolean hasPremiumAccess = false;
-    String content = article.getContent();
-
-    if (Boolean.TRUE.equals(article.getIsPremium())) {
-      log.info("Article is PREMIUM - checking access rights");
-
-      if (userId == null) {
-        // 토큰이 없거나 유효하지 않은 경우: 30% 미리보기만 제공
-        log.info("No valid authentication - showing preview content (30%)");
-        content = truncateContent(article.getContent());
-        isFullContentAvailable = false;
-        hasPremiumAccess = false;
-      } else {
-        // 유효한 토큰이 있는 경우: 구매 여부 확인
-        boolean hasPurchased = hasPurchasedArticle(userId, id, article.getLanguage(), ignoreCache);
-        log.info("Purchase check result: userId={}, articleId={}, language={}, hasPurchased={}",
-            userId, id, article.getLanguage(), hasPurchased);
-
-        if (hasPurchased) {
-          log.info("User has purchased - showing FULL content");
-          isFullContentAvailable = true;
-          hasPremiumAccess = true;
-        } else {
-          log.info("User has NOT purchased - showing preview content (30%)");
-          content = truncateContent(article.getContent());
-          isFullContentAvailable = false;
-          hasPremiumAccess = false;
-        }
-      }
-    } else {
-      // 일반 아티클: 전체 콘텐츠 제공
-      log.info("Article is NOT premium - showing full content");
-      isFullContentAvailable = true;
-    }
-
-    log.info("Final result: contentLength={}, isFullContentAvailable={}, hasPremiumAccess={}",
-        content.length(), isFullContentAvailable, hasPremiumAccess);
 
     return ArticleDTO.builder()
         .id(article.getId())
         .title(article.getTitle())
-        .content(content)
         .category(article.getCategory())
         .language(article.getLanguage())
         .isPremium(article.getIsPremium())
@@ -138,6 +101,7 @@ public class ArticleService {
         .isFullContentAvailable(isFullContentAvailable)
         .hasPremiumAccess(hasPremiumAccess)
         .isContentFiltered(!isFullContentAvailable)
+        .slideCount(article.getSlideCount())
         .build();
   }
 
@@ -148,9 +112,11 @@ public class ArticleService {
         .orElseThrow(NotFoundException::new);
 
     // 2. 프리미엄 기사 체크 및 권한 확인
-    if(article.getIsPremium() && !checkPurchaseFromDatabase(extractUserIdFromRequest(request), id, "ko"))
-      throw new AccessDeniedException("You don't have access to this article");
-
+    // number가 3 이상이면서 프리미엄 기사인 경우에만 권한 체크
+    if (number >= 3 && article.getIsPremium()) {
+      if (!checkPurchaseFromDatabase(extractUserIdFromRequest(request), id, "ko"))
+        throw new AccessDeniedException("You don't have access to this article");
+    }
     String paddedId = padZero(id);
     String paddedNumber = padZero(number);
     String filePath = ARTICLE_FILE_PATH_PREFIX_WINDOWS + paddedId + "\\" + paddedNumber + FILE_EXT_PNG;
@@ -708,7 +674,6 @@ public class ArticleService {
         .map(article -> ArticleDTO.builder()
             .id(article.getId())
             .title(article.getTitle())
-            .content(article.getContent())
             .category(article.getCategory())
             .language(article.getLanguage())
             .isPremium(article.getIsPremium())
@@ -719,6 +684,7 @@ public class ArticleService {
             .slug(article.getSlug())
             .metaDescription(article.getMetaDescription())
             .isFullContentAvailable(true)
+            .slideCount(article.getSlideCount())
             .build())
         .collect(Collectors.toList());
   }
@@ -747,7 +713,6 @@ public class ArticleService {
         .map(article -> ArticleDTO.builder()
             .id(article.getId())
             .title(article.getTitle())
-            .content(article.getContent())
             .category(article.getCategory())
             .language(article.getLanguage())
             .isPremium(article.getIsPremium())
@@ -757,6 +722,7 @@ public class ArticleService {
             .slug(article.getSlug())
             .metaDescription(article.getMetaDescription())
             .isFullContentAvailable(true)
+            .slideCount(article.getSlideCount())
             .build())
         .collect(Collectors.toList());
   }

@@ -23,9 +23,6 @@ public class Article {
   @Column(name="title")
   private String title;
 
-  @Column(name="content")
-  private String content;
-
   @Column(name="category")
   private String category;
 
@@ -56,6 +53,9 @@ public class Article {
 
   @Column(name="expectation_count")
   private Integer expectationCount;
+
+  @Column(name="slide_count")
+  private Integer slideCount;
 
   public void incrementViewCount() {
     if (this.viewCount == null)
