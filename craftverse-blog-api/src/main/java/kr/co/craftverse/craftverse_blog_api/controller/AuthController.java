@@ -55,13 +55,6 @@ public class AuthController {
   private final JwtTokenProvider jwtTokenProvider;
   private final PasswordResetService passwordResetService;
 
-  @GetMapping("/csrf")
-  public RestResult<Map<String, String>> getCsrfToken(CsrfToken token) {
-    Map<String, String> data = new LinkedHashMap<>();
-    data.put("csrfToken", token.getToken());
-    return new RestResult<>(data);
-  }
-
   /**
    * 현재 사용자 정보 조회 API
    */
