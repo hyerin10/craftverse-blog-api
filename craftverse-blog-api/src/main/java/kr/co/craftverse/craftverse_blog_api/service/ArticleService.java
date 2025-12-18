@@ -33,6 +33,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import kr.co.craftverse.craftverse_blog_api.common.exception.http.NotFoundException;
+import kr.co.craftverse.craftverse_blog_api.common.exception.http.UnauthorizedException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticleDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.ArticlePurchaseDTO;
@@ -112,8 +113,8 @@ public class ArticleService {
         .orElseThrow(NotFoundException::new);
 
     // 2. 프리미엄 기사 체크 및 권한 확인
-    // number가 3 이상이면서 프리미엄 기사인 경우에만 권한 체크
-    if (number >= 3 && article.getIsPremium()) {
+    // number가 3 초과면서 프리미엄 기사인 경우에만 권한 체크
+    if (number > 3 && article.getIsPremium()) {
       if (!checkPurchaseFromDatabase(extractUserIdFromRequest(request), id, "ko"))
         throw new AccessDeniedException("You don't have access to this article");
     }
@@ -243,6 +244,9 @@ public class ArticleService {
   private boolean checkPurchaseFromDatabase(Long userId, Long articleId, String language) {
     log.debug("=== Database Purchase Check ===");
     log.debug("Query parameters: userId={}, articleId={}, language={}", userId, articleId, language);
+
+    if(userId == null)
+      throw new UnauthorizedException();
 
     try {
       List<ArticlePurchase> purchases = articlePurchasesRepository.findByUserId(userId);
