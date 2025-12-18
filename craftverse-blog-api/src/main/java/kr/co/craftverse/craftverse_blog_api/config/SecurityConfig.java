@@ -75,13 +75,7 @@ public class SecurityConfig {
     http
         // CORS 설정을 맨 앞에 배치
         .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-        .csrf(csrf -> csrf
-            // 쿠키 기반 CSRF 토큰 저장소 사용 (SPA에 적합)
-            .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-            // CSRF 토큰을 request handler로 처리
-            .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler())
-            .ignoringRequestMatchers("/payments/webhook")  // 이 부분 추가
-        )
+        .csrf(AbstractHttpConfigurer::disable)
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
@@ -90,7 +84,6 @@ public class SecurityConfig {
             .requestMatchers("/auth/**").permitAll()
             .requestMatchers("/article/**").permitAll()
             .requestMatchers("/articles/**").permitAll()
-//            .requestMatchers("/article/{id}/download").authenticated()
             .requestMatchers("/sitemap.xml").permitAll()
             .requestMatchers("/", "/home", "/about").permitAll()
             .anyRequest().authenticated()
