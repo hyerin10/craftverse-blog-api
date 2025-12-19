@@ -3,12 +3,10 @@ package kr.co.craftverse.craftverse_blog_api.controller;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import kr.co.craftverse.craftverse_blog_api.common.RestResult;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Map;
 
 @RestController
 public class HealthCheckController {

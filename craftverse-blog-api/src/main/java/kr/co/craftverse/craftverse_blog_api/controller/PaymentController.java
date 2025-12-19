@@ -12,7 +12,6 @@ import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentCancelReque
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentConfirmRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentRequestDTO;
 import kr.co.craftverse.craftverse_blog_api.model.dto.payment.PaymentResponseDTO;
-import kr.co.craftverse.craftverse_blog_api.security.TossWebhookSecurityValidator;
 import kr.co.craftverse.craftverse_blog_api.service.TossPaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
