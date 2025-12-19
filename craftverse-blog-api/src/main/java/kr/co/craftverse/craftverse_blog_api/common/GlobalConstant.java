@@ -169,7 +169,7 @@ public class GlobalConstant {
 
   // 파일 경로 관련
   public static final String ARTICLE_FILE_PATH_PREFIX_WINDOWS = "C:\\home\\datakeeper\\articles\\";
-  public static final String ARTICLE_FILE_PATH_PREFIX_LINUX = "home/datakeeper/articles/";
+  public static final String ARTICLE_FILE_PATH_PREFIX_LINUX = "/mnt/dataserver/";
   public static final String FILE_EXT_ZIP = ".zip";
   public static final String FILE_EXT_PNG = ".png";
 }

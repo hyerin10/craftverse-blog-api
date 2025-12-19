@@ -19,9 +19,15 @@ public class RedisConfig {
   @Value("${spring.redis.port}")
   private int redisPort;
 
+  @Value("${spring.redis.password}")  // ✅ 괄호 닫음
+  private String redisPassword;  // ✅ String으로 변경
+
   @Bean
   public RedisConnectionFactory redisConnectionFactory() {
-    RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration(redisHost, redisPort);
+    RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
+    redisConfig.setHostName(redisHost);
+    redisConfig.setPort(redisPort);
+    redisConfig.setPassword(redisPassword);  // ✅ setter 메서드 사용
     return new LettuceConnectionFactory(redisConfig);
   }
 

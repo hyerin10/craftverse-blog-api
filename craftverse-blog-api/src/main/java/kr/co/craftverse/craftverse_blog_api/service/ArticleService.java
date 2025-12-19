@@ -1,6 +1,6 @@
 package kr.co.craftverse.craftverse_blog_api.service;
 
-import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_FILE_PATH_PREFIX_WINDOWS;
+import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.ARTICLE_FILE_PATH_PREFIX_LINUX;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CACHE_EXPIRE_HOURS;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.CONTENT_TRUNCATION_SUFFIX;
 import static kr.co.craftverse.craftverse_blog_api.common.GlobalConstant.FILE_EXT_PNG;
@@ -120,7 +120,7 @@ public class ArticleService {
     }
     String paddedId = padZero(id);
     String paddedNumber = padZero(number);
-    String filePath = ARTICLE_FILE_PATH_PREFIX_WINDOWS + paddedId + "\\" + paddedNumber + FILE_EXT_PNG;
+    String filePath = ARTICLE_FILE_PATH_PREFIX_LINUX + paddedId + "/" + paddedNumber + FILE_EXT_PNG;
 
     // 4. 파일 존재 여부 확인
     Path path = Paths.get(filePath);
@@ -144,7 +144,7 @@ public class ArticleService {
       throw new AccessDeniedException("You don't have access to this article");
 
     String paddedId = padZero(id);
-    String filePath = ARTICLE_FILE_PATH_PREFIX_WINDOWS + paddedId + "\\" + paddedId + FILE_EXT_ZIP;
+    String filePath = ARTICLE_FILE_PATH_PREFIX_LINUX + paddedId + "/" + paddedId + FILE_EXT_ZIP;
 
     // 4. 파일 존재 여부 확인
     Path path = Paths.get(filePath);
