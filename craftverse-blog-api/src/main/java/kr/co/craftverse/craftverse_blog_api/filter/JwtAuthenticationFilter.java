@@ -8,6 +8,7 @@ import java.io.IOException;
 import kr.co.craftverse.craftverse_blog_api.config.JwtTokenProvider;
 import kr.co.craftverse.craftverse_blog_api.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.MDC;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,6 +28,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
       Long userId = jwtTokenProvider.getUserId(token);
       String email = jwtTokenProvider.getEmail(token);
 
+      MDC.put("userId", String.valueOf(userId));
+
       // CustomUserDetails 객체 생성
       CustomUserDetails userDetails = new CustomUserDetails(userId);
 
@@ -39,5 +42,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     filterChain.doFilter(request, response);
+
   }
 }

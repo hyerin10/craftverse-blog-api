@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ArtifactsWorkspaceSettings">
+    <artifacts-to-build>
+      <artifact name="craftverse-blog-api.craftverse-blog-api.main~1:jar2" />
+    </artifacts-to-build>
+  </component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="eac337c4-d6a0-4f43-a8f3-3600100cae6b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/application.properties" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/craftverse-blog-api">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$/craftverse-blog-api">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+                <item name="Run Configurations" type="7b0102dc:RunConfigurationsNode" />
+              </path>
+            </expand>
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="JUnit5 Test Class" />
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="95bc33c91bff99d035731862d239d22a4a3a3694" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="2uwAFIZV4zZKB4jqeU6uTRbuW1J" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="1" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.ArticleControllerTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.AuthControllerTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build craftverse-blog-api.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CommonAuthTest.refreshToken_InvalidRefreshToken.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CommonAuthTest.refreshToken_Success.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.fail_createArticle_invalidCategory.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.fail_createArticle_invalidJson.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.fail_createArticle_invalidLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.fail_createArticle_missingContentType.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.fail_createArticle_missingCsrf.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.fail_createArticle_missingTitle.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CreateArticle.success_createArticle.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DataIntegrityTests.fail_negativeViewCount.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DataIntegrityTests.fail_viewCountOverflow.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DataIntegrityTests.success_maxIntegerViewCount.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DataIntegrityTests.success_veryLongStringData.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DeleteArticle.fail_deleteArticle_invalidId.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DeleteArticle.fail_deleteArticle_missingCsrf.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DeleteArticle.fail_deleteArticle_notFound.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DeleteArticle.success_deleteArticle.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.fail_caseSensitiveLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.fail_duplicateParameters.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.fail_overMaxValueId.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.success_duplicateParameters.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.success_longCookieValue.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.success_manyCookies.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.success_maxValueId.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EdgeCaseTests.success_nullParameters.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.EmailVerificationServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.fail_getArticleById_invalidIdFormat.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.fail_getArticleById_invalidIdFormat_2.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.fail_getArticleById_invalidIdFormat_3.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.fail_getArticleById_invalidIdFormat_4.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.fail_getArticleById_notFound.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleById.success_getArticleById.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleByIdTests.fail_invalidIdFormat.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticleByIdTests.success_anonymousUserAccess.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlePurchases.success_getPurchases_authenticatedUser.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlePurchasesTests.fail_unauthenticatedUserRedirectsToOAuth2Login.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlePurchasesTests.fail_unauthenticatedUserReturns401.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlePurchasesTests.success_anonymousUser.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlePurchasesTests.success_authenticatedUser.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlePurchasesTests.success_variousPurchaseStatuses.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguage.success_getArticles_defaultLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguage.success_getArticles_emptyResult.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguage.success_getArticles_specificLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguage.success_getArticles_specificLanguage_en.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguage.success_getArticles_specificLanguage_ko.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguage.success_getArticles_untranslatedLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguageTests.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguageTests.fail_unsupportedLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguageTests.success_anonymousUserAccess.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesByLanguageTests.success_getEnglishArticles.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesPurchases.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesPurchases.success_getPurchases_authenticatedUser.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesPurchases.success_getPurchases_specificLanguage.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GetArticlesPurchases.success_getPurchases_unauthenticatedUser.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.getGoogleAuthUrl_Default.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.getGoogleAuthUrl_InvalidAction.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.getGoogleAuthUrl_Login.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.getGoogleAuthUrl_Signup.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_CodeAlreadyUsed.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_EmptyCode.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_ExpiredCode.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_Failure.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_GoogleApiTimeout.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_MissingParameters.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_Success.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.GoogleOAuthTest.googleLogin_UserDenied.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.HttpMethodAndEndpointErrors.fail_notFoundEndpoint.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.HttpMethodAndEndpointErrors.fail_unsupportedHttpMethod.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViews.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViews.fail_incrementViews_invalidId.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViews.success_incrementViews_alreadyViewed.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViews.success_incrementViews_differentArticleCookie.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViews.success_incrementViews_newView.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViewsTests.fail_invalidIdFormat.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViewsTests.fail_missingCsrf.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViewsTests.success_anonymousUser.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViewsTests.success_firstView_viewCountIncreases.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViewsTests.success_repeatView_viewCountNotChanged.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.IncrementViewsTests.success_viewCountRangeTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.InternationalizationTests.fail_variousLanguageCodePatterns.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.InternationalizationTests.success_koreanContent.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.NotFoundTests.fail_nonExistentEndpoints.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.NotFoundTests.fail_pathSeparatorErrors.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.NotFoundTests.fail_specialCharactersInUrl.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.PerformanceTests.success_concurrentRequests.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.PerformanceTests.success_largeDataResponse.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RegularAuthTest.registerUser_Success.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RegularAuthTest.verifyEmail_InvalidCode.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RegularAuthTest.verifyEmail_Success.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Status400Tests.test400_updateWithInvalidId.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UpdateArticle.fail_updateArticle_invalidId.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UpdateArticle.fail_updateArticle_notFound.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UpdateArticle.success_updateArticle.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.UserServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.craftverse-blog-api [bootJar].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.craftverse-blog-api [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.craftverse-blog-api [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.craftverse-blog-api [jar].executor&quot;: &quot;Run&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;Spring Boot.CraftverseBlogApiApplication.executor&quot;: &quot;Run&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary&quot;: &quot;JUnit5&quot;,
+    &quot;com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5&quot;: &quot;&quot;,
+    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/hyerin/projects/craftverse-blog-api&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Artifacts&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.35517243&quot;,
+    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  },
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;redis&quot;,
+      &quot;postgresql&quot;
+    ]
+  }
+}</component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
+      <recent name="kr.co.craftverse.craftverse_blog_api.service" />
+      <recent name="kr.co.craftverse.craftverse_blog_api.controller" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Spring Boot.CraftverseBlogApiApplication">
+    <configuration name="AuthControllerTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;kr.co.craftverse.craftverse_blog_api.controller.AuthControllerTest&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="GoogleOAuthTest.googleLogin_GoogleApiTimeout" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;kr.co.craftverse.craftverse_blog_api.controller.AuthControllerTest$GoogleOAuthTest.googleLogin_GoogleApiTimeout&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="craftverse-blog-api [bootJar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="bootJar" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="craftverse-blog-api [clean]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="clean" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="craftverse-blog-api [jar]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/craftverse-blog-api" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="jar" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="CraftverseBlogApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="craftverse-blog-api.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="kr.co.craftverse.craftverse_blog_api.CraftverseBlogApiApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Gradle.craftverse-blog-api [bootJar]" />
+        <item itemvalue="Gradle.craftverse-blog-api [clean]" />
+        <item itemvalue="Gradle.craftverse-blog-api [jar]" />
+        <item itemvalue="Gradle.AuthControllerTest" />
+        <item itemvalue="Gradle.GoogleOAuthTest.googleLogin_GoogleApiTimeout" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9f38398b9061-18abd8497189-intellij.indexing.shared.core-IU-241.14494.240" />
+        <option value="bundled-js-predefined-1d06a55b98c1-74d2a5396914-JavaScript-IU-241.14494.240" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="eac337c4-d6a0-4f43-a8f3-3600100cae6b" name="Changes" comment="" />
+      <created>1743149157859</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1743149157859</updated>
+      <workItem from="1743149158891" duration="9192000" />
+      <workItem from="1743405174444" duration="2916000" />
+      <workItem from="1743409928933" duration="1672000" />
+      <workItem from="1743494189725" duration="4483000" />
+      <workItem from="1743502584851" duration="39000" />
+      <workItem from="1743502650438" duration="5739000" />
+      <workItem from="1743606595810" duration="6448000" />
+      <workItem from="1743927317969" duration="4754000" />
+      <workItem from="1744198591460" duration="8046000" />
+      <workItem from="1744969552755" duration="1978000" />
+      <workItem from="1748671477430" duration="9924000" />
+      <workItem from="1748699782090" duration="7000" />
+      <workItem from="1748715049722" duration="764000" />
+      <workItem from="1748715837303" duration="3893000" />
+      <workItem from="1748872142806" duration="8029000" />
+      <workItem from="1748896746180" duration="4881000" />
+      <workItem from="1749019541972" duration="11125000" />
+      <workItem from="1749056604241" duration="1621000" />
+      <workItem from="1749621433868" duration="16333000" />
+      <workItem from="1749831043958" duration="5021000" />
+      <workItem from="1749900874726" duration="6335000" />
+      <workItem from="1749908904010" duration="2203000" />
+      <workItem from="1750007302743" duration="36000" />
+      <workItem from="1750007637358" duration="223000" />
+      <workItem from="1750056533677" duration="369000" />
+      <workItem from="1750056981648" duration="4390000" />
+      <workItem from="1750139325799" duration="3075000" />
+      <workItem from="1750169331054" duration="3975000" />
+      <workItem from="1750175790865" duration="1297000" />
+      <workItem from="1750259633457" duration="5079000" />
+      <workItem from="1750343563891" duration="4505000" />
+      <workItem from="1750395436323" duration="1978000" />
+      <workItem from="1750438029862" duration="3965000" />
+      <workItem from="1750484531002" duration="7429000" />
+      <workItem from="1750505196245" duration="5906000" />
+      <workItem from="1750581598706" duration="1289000" />
+      <workItem from="1750862929489" duration="5471000" />
+      <workItem from="1750934862075" duration="9320000" />
+      <workItem from="1751007117138" duration="1173000" />
+      <workItem from="1751039032899" duration="3467000" />
+      <workItem from="1751055112728" duration="577000" />
+      <workItem from="1751056345567" duration="800000" />
+      <workItem from="1751109144693" duration="7293000" />
+      <workItem from="1751195478078" duration="4825000" />
+      <workItem from="1751302070614" duration="834000" />
+      <workItem from="1751452647683" duration="216000" />
+      <workItem from="1751641679599" duration="717000" />
+      <workItem from="1752288540098" duration="926000" />
+      <workItem from="1752295127249" duration="10726000" />
+      <workItem from="1752310367435" duration="1637000" />
+      <workItem from="1752315280445" duration="3606000" />
+      <workItem from="1752332552370" duration="968000" />
+      <workItem from="1752401461250" duration="3772000" />
+      <workItem from="1752407901104" duration="3322000" />
+      <workItem from="1752490623570" duration="4516000" />
+      <workItem from="1752584605181" duration="1474000" />
+      <workItem from="1752645405206" duration="3753000" />
+      <workItem from="1752902958084" duration="1824000" />
+      <workItem from="1752919739406" duration="1489000" />
+      <workItem from="1753268420558" duration="767000" />
+      <workItem from="1753353551905" duration="1217000" />
+      <workItem from="1753534313292" duration="1202000" />
+      <workItem from="1754053817282" duration="1178000" />
+      <workItem from="1754225442426" duration="2025000" />
+      <workItem from="1754310097223" duration="3028000" />
+      <workItem from="1754557747228" duration="4424000" />
+      <workItem from="1754724784136" duration="4181000" />
+      <workItem from="1754743604644" duration="4100000" />
+      <workItem from="1754905830775" duration="3881000" />
+      <workItem from="1766384898924" duration="246000" />
+      <workItem from="1766391100729" duration="3931000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>

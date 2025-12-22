@@ -37,14 +37,19 @@ dependencies {
 			"org.springframework.boot:spring-boot-starter-data-redis",
 			"io.lettuce:lettuce-core",
 			"org.springframework.boot:spring-boot-starter-oauth2-client",
-			"com.fasterxml.jackson.core:jackson-databind"
+			"com.fasterxml.jackson.core:jackson-databind",
+			"net.logstash.logback:logstash-logback-encoder:7.4",
+			"org.springframework.boot:spring-boot-starter-actuator"
 	)
 	testImplementation (
 			"org.springframework.boot:spring-boot-starter-test",
 			"org.springframework.security:spring-security-test"
 	)
 	compileOnly "org.projectlombok:lombok"
-	runtimeOnly "org.postgresql:postgresql"
+	runtimeOnly (
+			"org.postgresql:postgresql",
+			"io.micrometer:micrometer-registry-prometheus"
+	)
 	annotationProcessor "org.projectlombok:lombok"
 	testRuntimeOnly "org.junit.platform:junit-platform-launcher"
 }
