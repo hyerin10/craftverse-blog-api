@@ -9,6 +9,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
+    <list default="true" id="eac337c4-d6a0-4f43-a8f3-3600100cae6b" name="Changes" comment="" />
     <list default="true" id="eac337c4-d6a0-4f43-a8f3-3600100cae6b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" afterDir="false" />
@@ -38,6 +39,17 @@
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
                 <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+              </path>
+              <path>
+                <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
+                <item name="craftverse-blog-api" type="f1a62948:ProjectNode" />
+                <item name="Tasks" type="e4a08cd1:TasksNode" />
+                <item name="build" type="c8890929:TasksNode$1" />
               </path>
               <path>
                 <item name="" type="6a2764b6:ExternalProjectsStructure$RootNode" />
@@ -212,8 +224,8 @@
   },
   &quot;keyToStringList&quot;: {
     &quot;DatabaseDriversLRU&quot;: [
-      &quot;redis&quot;,
-      &quot;postgresql&quot;
+      &quot;postgresql&quot;,
+      &quot;redis&quot;
     ]
   }
 }</component>
@@ -229,7 +241,7 @@
       <recent name="kr.co.craftverse.craftverse_blog_api.controller" />
     </key>
   </component>
-  <component name="RunManager" selected="Spring Boot.CraftverseBlogApiApplication">
+  <component name="RunManager" selected="Gradle.craftverse-blog-api [bootJar]">
     <configuration name="AuthControllerTest" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
@@ -447,7 +459,17 @@
       <workItem from="1754743604644" duration="4100000" />
       <workItem from="1754905830775" duration="3881000" />
       <workItem from="1766384898924" duration="246000" />
-      <workItem from="1766391100729" duration="3931000" />
+      <workItem from="1766391100729" duration="9076000" />
+      <workItem from="1766402084855" duration="7995000" />
+      <workItem from="1766458566189" duration="682000" />
+      <workItem from="1766460037840" duration="1998000" />
+      <workItem from="1766544724996" duration="2385000" />
+      <workItem from="1766652457020" duration="637000" />
+      <workItem from="1766734704991" duration="835000" />
+      <workItem from="1766746303334" duration="4769000" />
+      <workItem from="1766913495345" duration="2850000" />
+      <workItem from="1766990057006" duration="4198000" />
+      <workItem from="1767429777570" duration="4171000" />
     </task>
     <servers />
   </component>
