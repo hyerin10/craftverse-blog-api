@@ -1,6 +1,6 @@
 # 🎨 CraftVerse Blog API
 
-블로그를 위한 백엔드 API 서버입니다.
+Craftverse 블로그 백엔드 API 서버입니다.
 
 ## ✨ 주요 기능
 
