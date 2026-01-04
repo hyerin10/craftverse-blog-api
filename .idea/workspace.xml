@@ -9,13 +9,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="eac337c4-d6a0-4f43-a8f3-3600100cae6b" name="Changes" comment="" />
     <list default="true" id="eac337c4-d6a0-4f43-a8f3-3600100cae6b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/build.gradle" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/exception/GlobalExceptionHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/JwtAuthenticationFilter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/GlobalConstant.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/common/GlobalConstant.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/RedisConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/config/RedisConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/MdcLoggingFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/filter/MdcLoggingFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/messaging/EmailConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/craftverse-blog-api/src/main/java/kr/co/craftverse/craftverse_blog_api/service/messaging/EmailConsumer.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -470,6 +469,7 @@
       <workItem from="1766913495345" duration="2850000" />
       <workItem from="1766990057006" duration="4198000" />
       <workItem from="1767429777570" duration="4171000" />
+      <workItem from="1767509321982" duration="1879000" />
     </task>
     <servers />
   </component>

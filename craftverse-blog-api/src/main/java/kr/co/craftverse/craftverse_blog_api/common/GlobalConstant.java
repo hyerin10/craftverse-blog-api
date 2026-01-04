@@ -85,17 +85,9 @@ public class GlobalConstant {
   public static final String BEARER_PREFIX = "Bearer ";
   public static final int BEARER_PREFIX_LENGTH = 7;
 
-  // CORS 설정
-  public static final String CORS_MAPPING_PATTERN = "/**";
-  public static final String CORS_ALLOWED_ORIGIN = "http://localhost:5173";
-  public static final String[] CORS_ALLOWED_METHODS = {"GET", "POST", "PATCH", "DELETE", "OPTIONS", "PUT"};
-  public static final String[] CORS_ALLOWED_HEADERS = {
-      "Authorization",
-      "Content-Type",
-      "Accept",
-      "X-Requested-With",
-      "Cache-Control"
-  };
+  // Client IP 추출용 헤더
+  public static final String X_FORWARDED_FOR_HEADER = "X-Forwarded-For";
+  public static final String USER_AGENT_HEADER = "User-Agent";
 
   public static final String ARTICLE_VIEWED_COOKIE_PREFIX = "article_viewed_";
   public static final String COOKIE_VALUE_VIEWED = "viewed";
@@ -172,4 +164,8 @@ public class GlobalConstant {
   public static final String ARTICLE_FILE_PATH_PREFIX_LINUX = "home/datakeeper/articles/";
   public static final String FILE_EXT_ZIP = ".zip";
   public static final String FILE_EXT_PNG = ".png";
+
+  public static final String REDIS_PROMOTION_PREFIX = "promotion:";
+  public static final String REDIS_PROMOTION_STOCK_PREFIX = REDIS_PROMOTION_PREFIX + "stock";
+  public static final String REDIS_PROMOTION_USER_PREFIX = REDIS_PROMOTION_PREFIX + "user:";
 }
